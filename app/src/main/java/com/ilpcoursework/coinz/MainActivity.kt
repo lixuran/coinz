@@ -1,5 +1,6 @@
 package com.ilpcoursework.coinz
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
@@ -44,8 +45,7 @@ import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback,
-        LocationEngineListener, PermissionsListener {
+class MainActivity : AppCompatActivity() {
 
     private val tag = "MainActivity"
     private var mapView: MapView? = null
@@ -60,81 +60,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        Mapbox.getInstance(this, ACCESS_TOKEN)
-        mapView = findViewById(R.id.mapboxMapView)
-        mapView?.onCreate(savedInstanceState)
-        mapView?.getMapAsync(this)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        fab.setOnClickListener { view ->    switchToMap()
+          //  Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                  //  .setAction("Action", null).show()
         }
     }
 
-    override fun onMapReady(mapboxMap: MapboxMap?) {
-        if (mapboxMap == null) {
-            Log.d(tag, "[onMapReady] mapboxMap is null")
-        } else {
-            map = mapboxMap
-            // Set user interface options
-            map?.uiSettings?.isCompassEnabled = true
-            map?.uiSettings?.isZoomControlsEnabled = true
-            // Make location information available
-            enableLocation()
-        }
+    private fun switchToMap() {
+        val intent = Intent(this, MapboxActivity::class.java)
+        startActivity(intent)
     }
-
-    private fun enableLocation() {
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            Log.d(tag, "Permissions are granted")
-            initialiseLocationEngine()
-            initialiseLocationLayer()
-        } else {
-            Log.d(tag, "Permissions are not granted")
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(this)
-        }
-    }
-
-    @SuppressWarnings("MissingPermission")
-    private fun initialiseLocationLayer() {
-        if (mapView == null) {
-            Log.d(tag, "mapView is null")
-        } else {
-            if (map == null) {
-                Log.d(tag, "map is null")
-            } else {
-                locationLayerPlugin = LocationLayerPlugin(mapView!!,
-                        map!!, locationEngine)
-                locationLayerPlugin.apply {
-                    setLocationLayerEnabled(true)
-                    cameraMode = CameraMode.TRACKING
-                    renderMode = RenderMode.NORMAL
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("MissingPermission")
-    private fun initialiseLocationEngine() {
-        locationEngine = LocationEngineProvider(this)
-                .obtainBestLocationEngineAvailable()
-        locationEngine.apply {
-            interval = 5000 // preferably every 5 seconds
-            fastestInterval = 1000 // at most every second
-            priority = LocationEnginePriority.HIGH_ACCURACY
-                    activate()
-        }
-        val lastLocation = locationEngine.lastLocation
-        if (lastLocation != null) {
-            originLocation = lastLocation
-            setCameraPosition(lastLocation)
-        } else {
-            locationEngine.addLocationEngineListener(this)
-        }
-    }
-
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
