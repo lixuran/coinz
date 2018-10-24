@@ -46,9 +46,9 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
     private lateinit var curdate: String
 
     private var marker:Marker?=null;
-
+    private var icons:IntArray = intArrayOf(R.drawable.blueCoin, R.drawable.greenCoin, R.drawable.yellowCoin, R.drawable.redCoin)
     private lateinit var downloadresult:String
-
+    //create a wallet class here to store all coins  -- todo
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,6 +201,7 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
         } else {
             originLocation = location
             setCameraPosition(originLocation)
+            TODO("loop over all points and remove those that haven't been removed if close enough, add the coins to the wallet class with the date ")
         }
     }
     private fun setCameraPosition(location: Location) {
@@ -236,21 +237,19 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
             for (f in featureList.orEmpty()) {
                 var g = f.geometry()
                 var p = f.properties()
-                var iconType = p.extract("marker-symbol")
-
+                //var iconType = (Int) p.extract("marker-symbol")
+                var iconType = 0
                 var point: Point = g as Point // mapping from ? to point might be unsafe?
-                marker = map?.addMarker(MarkerOptions().icon(iconType))
                 var iconFactory = IconFactory.getInstance(this);
-                var iconDrawable = ContextCompat.getDrawable(this, R.drawable.purple_marker);
-                var icon = iconFactory.defaultMarker()
+                var icon = iconFactory.fromResource(icons[iconType])
 
 
-            // Add the custom icon marker to the map
-            mapboxMap.addMarker( MarkerOptions()
-                    .position( LatLng(point.latitude(), point.longitude()))
-                    .title("Cape Town Harbour")
-                    .snippet("One of the busiest ports in South Africa")
-                    .icon(icon));
+                // Add the custom icon marker to the map
+                map?.addMarker(MarkerOptions()
+                        .position(LatLng(point.latitude(), point.longitude()))
+                        .title("amount")
+                        .snippet("exact amount + type")
+                        .icon(icon));
             }
         }
     }
