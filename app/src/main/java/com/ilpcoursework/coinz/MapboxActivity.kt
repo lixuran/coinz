@@ -1,10 +1,10 @@
 package com.ilpcoursework.coinz
 
+import android.arch.lifecycle.Lifecycle
 import android.location.Location
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.support.v4.content.ContextCompat
 import android.util.Log
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
@@ -12,10 +12,11 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.android.gestures.PointerDistancePair
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.annotations.Icon
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
@@ -33,7 +34,11 @@ import java.time.LocalDateTime
 class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListener,LocationEngineListener,MapboxMap.OnMapClickListener,DownloadCompleteListener{
 
 
-    private val tag = "MainActivity"
+
+    private lateinit var  fc:FeatureCollection
+    private var featureList: List<Feature>? = null
+
+    private val tag = "MapboxActivity"
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
 
@@ -41,34 +46,42 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
     private lateinit var permissionsManager: PermissionsManager
     private var locationEngine: LocationEngine? =null
     private var locationLayerPlugin: LocationLayerPlugin? = null
+    private val mywallet = Mywallet()
 
     private lateinit var downloader: DownloadFileTask
-    private lateinit var curdate: String
-
-    private var marker:Marker?=null;
-    private var icons:IntArray = intArrayOf(R.drawable.blueCoin, R.drawable.greenCoin, R.drawable.yellowCoin, R.drawable.redCoin)
+    private lateinit var curdate: LocalDateTime
+    private var lastdate: LocalDateTime? =null
+    private var coinrenderflag: Boolean? = null
+    private var markerlist:MutableList<Marker> = mutableListOf();
+    private var coinsindex = hashMapOf("SHIL" to 1,"DOLR" to 2,"QUID" to 3,"PENY" to 4 )
+    private var coinsmapping = hashMapOf("SHIL" to R.drawable.blue_coin,"DOLR" to R.drawable.green_coin,"QUID" to R.drawable.yellow_coin,"PENY" to R.drawable.red_coin )
+    private var icons:IntArray = intArrayOf(R.drawable.blue_coin, R.drawable.green_coin, R.drawable.yellow_coin, R.drawable.red_coin)
     private lateinit var downloadresult:String
     //create a wallet class here to store all coins  -- todo
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapbox)
-        var curdate = LocalDateTime.now()
-        val format = SimpleDateFormat("yyyy/MM/dd")
-        var url = "http://homepages.inf.ed.ac.uk/stg/coinz/"+ format.format(curdate)+"/coinzmap.geojson"
+
         Mapbox.getInstance(this, getString(R.string.access_token_public))
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
-        downloader=DownloadFileTask(DownloadCompleteRunner)
-        downloader.execute(url)
+
         //mapView?.getMapAsync{mapboxMap ->map = mapboxMap  }
     }
     @SuppressWarnings("MissingPermission")
     override fun onStart() {
         super.onStart()
         if(PermissionsManager.areLocationPermissionsGranted(this)){
-            locationEngine?.requestLocationUpdates()
+            //locationEngine?.requestLocationUpdates()
+            try {
+                locationEngine?.requestLocationUpdates()
+            } catch (ignored: SecurityException) {
+            //this try catch is from piazza might need redo
+
+                locationEngine?.addLocationEngineListener(this)
+            }
             locationLayerPlugin?.onStart()
         }
 
@@ -88,6 +101,7 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
 
     override fun onStop() {
         super.onStop()
+        locationEngine?.removeLocationEngineListener(this);//this is from piazza
         locationEngine?.removeLocationUpdates()
         locationLayerPlugin?.onStop()
         mapView?.onStop()
@@ -122,6 +136,16 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
             map?.uiSettings?.isZoomControlsEnabled = true
             // Make location information available
             enableLocation()
+
+            curdate = LocalDateTime.now()
+            if(lastdate!=curdate || lastdate==null) {
+                lastdate = curdate
+                val format = SimpleDateFormat("yyyy/MM/dd")
+                val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" + curdate.year + "/" + curdate.monthValue + "/" + curdate.dayOfMonth + "/coinzmap.geojson"
+                downloader = DownloadFileTask(this)
+                downloader.execute(url)
+            }
+
         }
     }
 
@@ -158,6 +182,8 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
 
     @SuppressWarnings("MissingPermission")
     private fun initialiseLocationLayer() {
+       // Lifecycle lifecycle = getLifecycle();
+       // lifecycle.addObserver(locationLayerPlugin!!);
         if (mapView == null) {
             Log.d(tag, "mapView is null")
         } else {
@@ -201,8 +227,31 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
         } else {
             originLocation = location
             setCameraPosition(originLocation)
+            var counter =0
             TODO("loop over all points and remove those that haven't been removed if close enough, add the coins to the wallet class with the date ")
+            for (f in featureList.orEmpty()) {
+                var g = f.geometry()
+                var point = g as Point
+                counter++
+                if(distance(originLocation,point)<25){
+                    map?.removeMarker(markerlist[counter])
+
+                    mywallet.addtoWallet(f)
+
+                }
+
+            }
         }
+    }
+    private fun distance(location: Location?,p: Point):Double{
+        val earthRadius = 6371000
+        val dLat =Math.toRadians(location!!.latitude - p.latitude())
+        val dLng  =Math.toRadians(location!!.longitude - p.longitude())
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(Math.toRadians(location!!.latitude)) * Math.cos(Math.toRadians(p.latitude())) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        val dist = (earthRadius * c) as Double
+        return dist
     }
     private fun setCameraPosition(location: Location) {
         val latlng = LatLng(location.latitude, location.longitude)
@@ -215,7 +264,7 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
     }
     override fun onMapClick(point: LatLng) {
         TODO("not implemented")
-        //click on coins show coin info (perferably as a panel(or sidepanel ))
+        //click on coins show coin info (perferably as a panel(or sidepanel )) this is implemented but can be improved
         //click on house show house info (as another activity)
         //click on wallet show personal info?? is this included?
 
@@ -223,33 +272,35 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
 
     override fun downloadComplete(result: String) {
         downloadresult = result
+
+        fc = FeatureCollection.fromJson(downloadresult)
+        featureList = fc.features()
         rendercoins(downloadresult)
     }
 
-    private fun rendercoins(result: String) {
+    private fun rendercoins(result: String?) {
         if (result == null) {
 
         } else {
-            var fc = FeatureCollection.fromJson(result)
-            var featureList = fc.features()
-
 
             for (f in featureList.orEmpty()) {
-                var g = f.geometry()
-                var p = f.properties()
-                //var iconType = (Int) p.extract("marker-symbol")
-                var iconType = 0
-                var point: Point = g as Point // mapping from ? to point might be unsafe?
-                var iconFactory = IconFactory.getInstance(this);
-                var icon = iconFactory.fromResource(icons[iconType])
+                val g = f.geometry()
+                val p = f.properties()?.asJsonObject
+                val currency:String = p?.get("currency").toString()
+                val point: Point = g as Point // mapping from ? to point might be unsafe?
+                val iconFactory = IconFactory.getInstance(this);
+                val icon = iconFactory.fromResource(R.drawable.blue_coin)
 
 
                 // Add the custom icon marker to the map
-                map?.addMarker(MarkerOptions()
+                val marker=map?.addMarker(MarkerOptions()
                         .position(LatLng(point.latitude(), point.longitude()))
-                        .title("amount")
-                        .snippet("exact amount + type")
-                        .icon(icon));
+                        .title(p?.get("marker-symbol").toString())
+                        .snippet(p?.get("currency").toString()+": "+p?.get("value").toString().substring(0,2))
+                        // .icon(icon)
+                        )
+                //.icon(icon));
+                markerlist.add(marker!!)
             }
         }
     }
