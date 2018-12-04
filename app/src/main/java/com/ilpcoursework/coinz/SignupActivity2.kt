@@ -19,81 +19,132 @@ import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_signup2.*
 import java.util.*
 
 /**
  * A login screen that offers login via email/password.
  */
-class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
+class SignupActivity2 : AppCompatActivity(), LoaderCallbacks<Cursor> {
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-//    private var mAuthTask: UserLoginTask? = null
     private var mAuth: FirebaseAuth? = null
-    private val tag = "LoginActivity"
+    private val tag = "SignupActivity"
     private var db = FirebaseFirestore.getInstance();
-    private var user: FirebaseUser?=null
-    private var userstore: User?=null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        setContentView(R.layout.activity_signup2)
         // Set up the login form.
         mAuth = FirebaseAuth.getInstance()
+
         populateAutoComplete()
-        password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptLogin()
-                return@OnEditorActionListener true
-            }
-            false
-        })
 
-        email_sign_in_button.setOnClickListener { attemptLogin() }
-        //sign_up_button.setOnClickListener{view ->switchToSignup()}
-        sign_up_button.setOnClickListener{view -> switchToSignup()}
+
+        email_sign_in_button.setOnClickListener { switchToSignin() }
+        sign_up_button.setOnClickListener{view -> signup()}
 
     }
-    override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (nonnull) and update UI
-        updateUI(mAuth?.currentUser)
+    private fun switchToSignin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
     }
+    private fun signup() {
+//        if (mAuthTask != null) {
+//            return
+//        }
 
-    private fun updateUI( user:FirebaseUser?) {
+        // Reset errors.
+        email.error = null
+        password.error = null
+
+        // Store values at the time of the login attempt.
+        val emailStr = email.text.toString()
+        val passwordStr = password.text.toString()
+        val usernameStr = username.text.toString()
+        var cancel = false
+        var focusView: View? = null
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
+            password.error = getString(R.string.error_invalid_password)
+            focusView = password
+            cancel = true
+        }
+
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(emailStr)) {
+            email.error = getString(R.string.error_field_required)
+            focusView = email
+            cancel = true
+        } else if (!isEmailValid(emailStr)) {
+            email.error = getString(R.string.error_invalid_email)
+            focusView = email
+            cancel = true
+        }
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView?.requestFocus()
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            //showProgress(true)
+            email_sign_in_button.setVisibility(View.GONE);
+            sign_up_button.setVisibility(View.GONE);
+
+            mAuth?.createUserWithEmailAndPassword(emailStr, passwordStr)
+                    ?.addOnCompleteListener(this) {task->
+
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(tag, "createUserWithEmail:success");
+                            var userstore = User(usernameStr,emailStr)
+                            // Add a new document with a generated ID
+                            db.collection("users")
+                                    .document(emailStr).set(userstore)
+                                    .addOnSuccessListener({
+                                        Log.d(tag, "DocumentSnapshot added with ID: " + usernameStr);
+                                    })
+                                    .addOnFailureListener(this) {
+                                            Log.w(tag, "Error adding document", it);
+                                    }
+                            val user = mAuth?.getCurrentUser();
+                            updateUI(user);
+
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(tag, "createUserWithEmail:failure", task.getException());
+                            Toast.makeText(this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+
+                        // ...
+                    }
+
+        }
+    }
+    private fun updateUI( user: FirebaseUser?) {
         if(user==null){
             //todo("complete this")
-            showProgress(false)
 
-          email_sign_in_button.setVisibility(View.VISIBLE);
-          sign_up_button.setVisibility(View.VISIBLE);
+
+            email_sign_in_button.setVisibility(View.VISIBLE);
+            sign_up_button.setVisibility(View.VISIBLE);
         }
         else{
-            val id =user!!.uid
-            val docRef = db.collection("users").document(user!!.email!!);
-            docRef.get().addOnSuccessListener {
-                documentSnapshot ->
-                userstore= documentSnapshot.toObject(User::class.java)
-
-                    val intent = Intent(this, MapboxActivity::class.java)
-                    intent.putExtra("useridentity", userstore)
-                    startActivity(intent)
-
-            }
+            val intent = Intent(this, welcomingActivity::class.java)
+            startActivity(intent)
         }
 
-    }
-
-    private fun switchToSignup() {
-        val intent = Intent(this, SignupActivity2::class.java)
-        startActivity(intent)
     }
     private fun populateAutoComplete() {
         if (!mayRequestContacts()) {
@@ -133,75 +184,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     }
 
 
-    /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    private fun attemptLogin() {
-//        if (mAuthTask != null) {
-//            return
-//        }
 
-        // Reset errors.
-        email.error = null
-        password.error = null
-
-        // Store values at the time of the login attempt.
-        val emailStr = email.text.toString()
-        val passwordStr = password.text.toString()
-
-        var cancel = false
-        var focusView: View? = null
-
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
-            password.error = getString(R.string.error_invalid_password)
-            focusView = password
-            cancel = true
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(emailStr)) {
-            email.error = getString(R.string.error_field_required)
-            focusView = email
-            cancel = true
-        } else if (!isEmailValid(emailStr)) {
-            email.error = getString(R.string.error_invalid_email)
-            focusView = email
-            cancel = true
-        }
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView?.requestFocus()
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true)
-            sign_up_button.setVisibility(View.GONE);email_sign_in_button.setVisibility(View.GONE);
-            mAuth?.signInWithEmailAndPassword(emailStr, passwordStr)
-            ?.addOnCompleteListener(this) {task->
-
-                if (task.isSuccessful()) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(tag, "signInWithEmail:success");
-                    val user = mAuth?.getCurrentUser();
-                    updateUI(user);
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(tag, "signInWithEmail:failure", task.getException());
-                    Toast.makeText(this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show();
-                    updateUI(null);
-                }
-
-                // ...
-            }
-
-        }
-    }
 
     private fun isEmailValid(email: String): Boolean {
         //TODO: Replace this with your own logic
@@ -210,7 +193,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     private fun isPasswordValid(password: String): Boolean {
         //TODO: Replace this with your own logic
-        return password.length > 4 && password.length < 30
+        return password.length > 4
     }
 
     /**
@@ -283,7 +266,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     private fun addEmailsToAutoComplete(emailAddressCollection: List<String>) {
         //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        val adapter = ArrayAdapter(this@LoginActivity,
+        val adapter = ArrayAdapter(this@SignupActivity2,
                 android.R.layout.simple_dropdown_item_1line, emailAddressCollection)
 
         email.setAdapter(adapter)
@@ -296,6 +279,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         val ADDRESS = 0
         val IS_PRIMARY = 1
     }
+
+
 
     companion object {
 

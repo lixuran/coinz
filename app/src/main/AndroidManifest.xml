@@ -22,9 +22,7 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".MapboxActivity" />
         <activity android:name=".SignupActivity" />
         <activity
@@ -36,6 +34,37 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings" />
+        <activity
+            android:name=".slidebarActivity"
+            android:label="@string/title_activity_slidebar"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".myfriendActivity"
+            android:label="@string/title_activity_myfriend"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".CoinActivity"
+            android:label="@string/title_activity_coin"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".MywalletActivity2"
+            android:label="@string/title_activity_mywallet2"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".SignupActivity2"
+            android:label="@string/title_activity_signup2" />
+        <activity android:name=".welcomingActivity" />
+        <activity
+            android:name=".walletselectActivity"
+            android:label="@string/title_activity_walletselect"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".profileActivity"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>
