@@ -26,6 +26,9 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.ilpcoursework.coinz.DAO.User
+import com.ilpcoursework.coinz.activities.MapboxActivity
+import com.ilpcoursework.coinz.activities.SignupActivity2
 import kotlinx.android.synthetic.main.activity_login.*
 import java.util.*
 

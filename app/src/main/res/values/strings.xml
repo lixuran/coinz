@@ -95,7 +95,6 @@
 
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
-
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="title_activity_slidebar">slidebarActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -106,9 +105,22 @@
     <string name="title_activity_myfriend">myfriend</string>
     <string name="title_activity_friendinfo">friendinfo</string>
     <string name="title_activity_coin">Coin</string>
-    <string name="title_activity_mapbox2">Mapbox2Activity</string>
-    <string name="title_activity_mywallet2">Mywallet</string>
+    <string name="title_activity_mywallet2">Mysubwallet</string>
     <string name="title_activity_signup2">Sign up</string>
-    <string name="title_activity_walletselect">walletselectActivity</string>
+    <string name="title_activity_walletselect">Mywallet</string>
     <string name="title_activity_profile">profile</string>
+    <string name="title_activity_mapbox2">map</string>
+    <string name="contract">"let it here by be known, it is the yarl's will that the following facts should be known, and rules be complied when come to the issues around bounty on the dragons:\n
+        1. the dragons scatter around the country side , when approached and killed by the advantures, drop dragon scale. Different type of dragons drop different type of scales.
+        2. the dragon scales that is collected from the dragons can be exchange to gold , subject to exchange rate given by the steward, which would update everyday as the steward sees fit.. larger piece of scale would have better price porpotional to the size.the advantagers can exchange at most 25 pieces of scales for gold at each day.
+        3. the dragon scales that hasn't been exchanged for gold yet get stored in the your inventory, which you can use to send to a friend as a gift.Anyone coin that received as a gift can be exchanged for gold, even if the daily exchange limit has been reached.
+        4. under the yarl 's generous offer, advantures can use their gold to purchase any properties and shops available in the city, provided that they have enough gold. The properties produce gold every day. 
+
+
+        " </string>
+    <string name="prompt_friend_username">input your companion username </string>
+    <string name="delete_friend">delete friend</string>
+    <string name="refuse">refuse</string>
+    <string name="accept">accept</string>
+
 </resources>
