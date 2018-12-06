@@ -122,5 +122,10 @@
     <string name="delete_friend">delete friend</string>
     <string name="refuse">refuse</string>
     <string name="accept">accept</string>
+    <string name="title">Skyrim Local Edition</string>
+    <string name="subtitle">Welcome to Whiterun!</string>
+    <string name="truetitle">also known as coinZ</string>
+    <string name="testing">testing</string>
+    <string name="save_it">save it</string>
 
 </resources>

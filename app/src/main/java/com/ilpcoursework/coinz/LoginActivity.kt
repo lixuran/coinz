@@ -27,8 +27,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
-import com.ilpcoursework.coinz.activities.MapboxActivity
 import com.ilpcoursework.coinz.activities.SignupActivity2
+import com.ilpcoursework.coinz.activities.mapboxActivity2
 import kotlinx.android.synthetic.main.activity_login.*
 import java.util.*
 
@@ -75,8 +75,10 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             //todo("complete this")
             showProgress(false)
 
-          email_sign_in_button.setVisibility(View.VISIBLE);
-          sign_up_button.setVisibility(View.VISIBLE);
+            email_sign_in_button.setVisibility(View.VISIBLE);
+            sign_up_button.setVisibility(View.VISIBLE);
+            subtitle.visibility = View.VISIBLE
+            welcomeinfo.visibility = View.VISIBLE
         }
         else{
             val id =user!!.uid
@@ -84,10 +86,11 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             docRef.get().addOnSuccessListener {
                 documentSnapshot ->
                 userstore= documentSnapshot.toObject(User::class.java)
-
-                    val intent = Intent(this, MapboxActivity::class.java)
-                    intent.putExtra("useridentity", userstore)
-                    startActivity(intent)
+                Toast.makeText(this, "logging in",
+                        Toast.LENGTH_SHORT).show();
+                val intent = Intent(this, mapboxActivity2::class.java)
+                intent.putExtra("useridentity", userstore)
+                startActivity(intent)
 
             }
         }
@@ -142,9 +145,6 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      * errors are presented and no actual login attempt is made.
      */
     private fun attemptLogin() {
-//        if (mAuthTask != null) {
-//            return
-//        }
 
         // Reset errors.
         email.error = null
@@ -183,7 +183,10 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            sign_up_button.setVisibility(View.GONE);email_sign_in_button.setVisibility(View.GONE);
+            sign_up_button.setVisibility(View.GONE);
+            email_sign_in_button.setVisibility(View.GONE);
+            subtitle.visibility = View.GONE
+            welcomeinfo.visibility = View.GONE
             mAuth?.signInWithEmailAndPassword(emailStr, passwordStr)
             ?.addOnCompleteListener(this) {task->
 

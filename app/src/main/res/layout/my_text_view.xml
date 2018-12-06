@@ -9,11 +9,11 @@
     android:layout_height="wrap_content"
     android:paddingTop="10dp"
     android:paddingBottom="10dp"
-    >
+    android:baselineAligned="false">
 
 
     <TableLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1">
 
@@ -33,7 +33,7 @@
                 android:layout_width="441dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:text="testing" />
+                android:text="@string/testing" />
         </TableRow>
 
         <TableRow
@@ -44,7 +44,7 @@
                 android:id="@+id/bankingButton"
                 android:layout_width="195dp"
                 android:layout_height="wrap_content"
-                android:text="save it" />
+                android:text="@string/save_it" />
 
             <Button
                 android:id="@+id/giftButton"
@@ -54,16 +54,5 @@
                 android:text="send gift" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
     </TableLayout>
 </LinearLayout>
