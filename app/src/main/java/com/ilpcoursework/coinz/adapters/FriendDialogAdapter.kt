@@ -44,7 +44,7 @@ class FriendDialogAdapter(private val myDataset: MutableList<friend>, private va
         // replace the textview text with the friend information and set button listener
         holder.textView.text = myDataset[position].tostring()
         holder.sendButton.text = "send"
-        holder.sendButton.setOnClickListener { view ->
+        holder.sendButton.setOnClickListener { _ ->
             activity.sendFriend(userstore.selectedcoin,position)
         }
     }

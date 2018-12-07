@@ -18,8 +18,8 @@ import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.LoginActivity
 import com.ilpcoursework.coinz.R
-import com.ilpcoursework.coinz.adapters.MyAdapter
 import com.ilpcoursework.coinz.adapters.FriendDialogAdapter
+import com.ilpcoursework.coinz.adapters.MyAdapter
 import com.ilpcoursework.coinz.helperfunctions
 import kotlinx.android.synthetic.main.activity_mywallet2.*
 import kotlinx.android.synthetic.main.app_bar_mywallet2.*
@@ -93,9 +93,10 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      * send the coin at position in the  coins to the bank
      * @param position the position of the coin in the selected coins
      */
-    fun sandbank(position:Int){
-        // if reached maximum saving allowance do nothing
-        if(userstore!!.bankedToday>=25)
+    fun sandBank(position:Int){
+        val cointosent = selectedCoins.get(position)
+        // if reached maximum saving allowance, and the coin is not a gift, do nothing
+        if(userstore!!.bankedToday>=25 && cointosent.type==0)
         {
             Toast.makeText(this, "maximum banking limit reached",
                     Toast.LENGTH_SHORT).show()
@@ -104,7 +105,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         // calculate gold and coin sum accordingly
         else {
             userstore!!.bankedToday+=1
-            val cointosent = selectedCoins.get(position)
+
             var rate = 0.0
             when (cointosent.currency) {
                 "SHIL" -> {rate = userstore!!.shilrate
@@ -137,6 +138,8 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             //set dialog with users friends in the recycler list
             dialog = Dialog(this)
             dialog.setContentView(R.layout.dialog_layout)
+            val textView =  dialog.findViewById<TextView>(R.id.textView)!!
+            textView.text = getString(R.string.sendprompt)
 
             frienddialogviewManager = LinearLayoutManager(this)
             frienddialogviewAdapter = FriendDialogAdapter(userstore!!.friends, userstore!!, this)
@@ -163,20 +166,26 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      * @param friendIndex the index of the friend in the user's friend list
      */
     fun sendFriend(coinIndex:Int, friendIndex:Int){
-        val friend = userstore!!.friends.get(friendIndex)
-        val coin = userstore!!.coins.get(coinIndex)
-        // remove the coin from user's coins
-        userstore!!.coins.remove(coin)
-        Toast.makeText(this, "coin sent",
-                Toast.LENGTH_SHORT).show()
-        //upload user 's current state
-        helperfunctions.updateUser(userstore!!, "FriendDialogAdapter")
-        // and send it to the friend
-        helperfunctions.Friendaddcoin(friend.email, coin, "FriendDialogAdapter")
-        //close the dialog
-        dialog.dismiss()
-        update_selected_coins()
-
+        if(userstore!!.giftToday<50) {
+            val friend = userstore!!.friends.get(friendIndex)
+            val coin = userstore!!.coins.get(coinIndex)
+            // remove the coin from user's coins
+            userstore!!.coins.remove(coin)
+            userstore!!.giftToday = userstore!!.giftToday + 1
+            Toast.makeText(this, "coin sent",
+                    Toast.LENGTH_SHORT).show()
+            //upload user 's current state
+            helperfunctions.updateUser(userstore!!, "FriendDialogAdapter")
+            // and send it to the friend
+            helperfunctions.Friendaddcoin(friend.email, coin, "FriendDialogAdapter")
+            //close the dialog
+            dialog.dismiss()
+            update_selected_coins()
+        }
+        else{
+            Toast.makeText(this, "can't send the gift: you have reached the upper limit today, plz try tmr",
+                    Toast.LENGTH_SHORT).show()
+        }
     }
     /**
      * update the coins view after a coin has been sent to a friend

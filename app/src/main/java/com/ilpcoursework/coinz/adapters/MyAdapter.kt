@@ -64,7 +64,7 @@ class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore:
                 activity2.show_dialog(myDataset[position])
         }
         holder.bankingButton.setOnClickListener { _ ->
-            activity2.sandbank(position)
+            activity2.sandBank(position)
 
         }
     }

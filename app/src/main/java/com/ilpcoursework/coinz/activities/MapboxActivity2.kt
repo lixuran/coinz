@@ -416,7 +416,10 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         val date1= LocalDate.of(lastdates[0],lastdates[1],lastdates[2])
         val date2 = LocalDate.now()
         val days = date1.until(date2, ChronoUnit.DAYS)
-        return 1.001.pow(days.toInt())
+        val rate = 1.001.pow(days.toInt())
+        if(rate <2)
+        return rate
+        return 2.0
     }
 
     /**

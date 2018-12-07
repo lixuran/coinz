@@ -7,6 +7,7 @@ class Coin :Serializable{
     var value = 0.0
     var currency=""
     var date =""
+    var type :Int = 0 // 0 stand for non gift coin and one stand for coins received as a gift
     public fun getcur(): String{
         return this.currency
     }
@@ -19,5 +20,6 @@ class Coin :Serializable{
         this.value=value
         this.currency=currency
         this.date=date
+        this.type=0
     }
 }

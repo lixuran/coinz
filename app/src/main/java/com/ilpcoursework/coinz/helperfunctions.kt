@@ -80,6 +80,7 @@ object helperfunctions {
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
+            coin.type=1
             frienduser?.coins?.add(0,coin)
             when (coin.currency) {
                 "SHIL" -> { frienduser?.myshils =  frienduser?.myshils!!+coin.value }

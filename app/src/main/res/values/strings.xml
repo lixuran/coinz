@@ -137,4 +137,7 @@
     <string name="quidrate">%1$s gold per kg.</string>
     <string name="shilrate">%1$s gold per kg.</string>
     <string name="send">send</string>
+    <string name="sendprompt"> "Who would you like to send?"</string>
+
+
 </resources>

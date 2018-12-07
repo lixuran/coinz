@@ -14,24 +14,26 @@ class User :Serializable{
     var mydolrs:Double=0.0
     var myquids:Double=0.0
     var mypenys:Double=0.0
-    var collectedtoday:Int=0
+    var collectedtoday:Int=0 // how many coins have been collected today
     var lastdate:String?=null
     var result:String?=null
     var shilrate:Double=0.0
     var dolrrate:Double=0.0
     var quidrate:Double=0.0
     var penyrate:Double=0.0
-    var bankedToday:Int =0
-    var collectedcoins = mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
+    var bankedToday:Int =0// how many coins have been send to bank today
+    var collectedcoins = mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)// which coin has been collected
     var friends  = mutableListOf<friend>()
     var pendingfriends  = mutableListOf<friend>()
     var changestate:Int =0
     var selectedcoin :Int =0
+    var giftToday :Int =0 // how many coins have been sent as gift today
     public fun update_settings(){
         collectedtoday=0
         collectedcoins=mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
         result =null
         bankedToday = 0
+        giftToday=0
         for (coin in coins){
             if(timebetween(coin.date)>=14){
                 coins.remove(coin)
@@ -65,6 +67,7 @@ class User :Serializable{
         mypenys=0.0
         collectedtoday=0
         bankedToday=0
+        giftToday=0
     }
 }
 
