@@ -102,12 +102,12 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="title_activity_myfriend">myfriend</string>
+    <string name="title_activity_myfriend">companions</string>
     <string name="title_activity_friendinfo">friendinfo</string>
     <string name="title_activity_coin">Coin</string>
-    <string name="title_activity_mywallet2">Mysubwallet</string>
+    <string name="title_activity_mywallet2">sub inventory</string>
     <string name="title_activity_signup2">Sign up</string>
-    <string name="title_activity_walletselect">Mywallet</string>
+    <string name="title_activity_walletselect">My Inventory</string>
     <string name="title_activity_profile">profile</string>
     <string name="title_activity_mapbox2">map</string>
     <string name="contract">"let it here by be known, it is the yarl's will that the following facts should be known, and rules be complied when come to the issues around bounty on the dragons:\n

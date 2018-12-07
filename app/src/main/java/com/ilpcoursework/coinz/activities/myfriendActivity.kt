@@ -26,7 +26,11 @@ import kotlinx.android.synthetic.main.activity_myfriend.*
 import kotlinx.android.synthetic.main.app_bar_myfriend.*
 import kotlinx.android.synthetic.main.content_myfriend.*
 
+/**
+ * the activity to add and remove friend
+ */
 class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
     private lateinit var friend_recyclerView: RecyclerView
     private lateinit var friend_viewAdapter: RecyclerView.Adapter<*>
     private lateinit var friend_viewManager: RecyclerView.LayoutManager
@@ -45,13 +49,12 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         setSupportActionBar(toolbar)
         userstore = intent.extras["useridentity"] as? User
 
-
-
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
+        //set navigation header information from user object
         nav_view.setNavigationItemSelectedListener(this)
         val headerview =nav_view.getHeaderView(0)
         val user_name=headerview.findViewById<View>(R.id.user_name)as TextView
@@ -70,6 +73,7 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         quid_view.text = userstore?.myquids.toString().split(".")[0]
         shil_view.text = userstore?.myshils.toString().split(".")[0]
 
+        //initialise the recycler view for friend invitations and friend list
         friend_viewManager = LinearLayoutManager(this)
          friendlist = userstore!!.friends
         friend_viewAdapter = friendAdapter(userstore!!.friends, this)
@@ -103,18 +107,24 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
         }
 
+        // set realtime update listener for the friend list and invitations
         var docRef = db.collection("users").document(userstore!!.email)
         docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
             if (firebaseFirestoreException != null) {
                 Log.w(TAG, "listen:error", firebaseFirestoreException)
             }
+            //update user object from snapshot
             userstore= documentSnapshot?.toObject(User::class.java)
+            // update the views based on the kind of the change happened.
             if(userstore?.changestate==1){
+                //clear all items in the friend list,which is used to fill the adapter,
+                // and reset it to the updated list
                 friendlist.clear()
                 friend_viewAdapter.notifyDataSetChanged();
                 friendlist.addAll(userstore!!.friends)
                 friend_viewAdapter.notifyItemRangeInserted(0,friendlist.size)
-//                friend_viewAdapter.notifyItemInserted(0)
+                //friend_viewAdapter.notifyItemInserted(0)
+                //after change is made reset for next view update
                 userstore?.changestate=0
             }
             else if (userstore?.changestate==2){
@@ -138,17 +148,28 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
     override fun onStart() {
         super.onStart()
-
+        //set the listener for user adding friend
         addfriend_button.setOnClickListener { view ->
             val usernameStr=username.text.toString()
-            if(usernameStr!=userstore!!.username && !userstore!!.friends.map { friend -> friend.username }.contains(usernameStr)) {
+            //if player request for adding a friend who s in the friend list, or try to add himself
+            if(userstore!!.friends.map { friend -> friend.username }.contains(usernameStr)) {
+                Toast.makeText(this, "invalid username: already in friend list",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else if(usernameStr==userstore!!.username ){
+                Toast.makeText(this, "invalid username:player can't add himself ",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else {
+                // get request user info
                 db.collection("users").whereEqualTo("username", usernameStr).get().addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        // check how many result are found
                         if (task.getResult()!!.isEmpty()) {
                             Toast.makeText(this, "invalid username: no player found",
                                     Toast.LENGTH_SHORT).show();
                         } else if (task.getResult()?.size() == 1) {
-
+                            // send a invitation to the target player
                             val friend = task.getResult()!!.documents.get(0).toObject(User::class.java)
                             if (!friend!!.pendingfriends.map { friend -> friend.email }.contains(userstore!!.email)) {
                                 friend.pendingfriends.add(0, friend(userstore!!.username, userstore!!.email))
@@ -157,6 +178,7 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                             Toast.makeText(this, "invitation sent",
                                     Toast.LENGTH_SHORT).show();
                         } else {
+                            //there shouldn't be two user with same username but just in case, set a warning and a toast
                             Log.w(TAG, "more than one user with username: " + usernameStr);
                             Toast.makeText(this, "invalid username: multiple player found",
                                     Toast.LENGTH_SHORT).show();
@@ -169,8 +191,13 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
     }
 
+    /**
+     * delete the friend indicated by position in the friend list when called upon
+     * @param position the position in the friend list of the friend to be deleted
+     */
     public fun deletefriend(position:Int) {
         val friend = userstore!!.friends.get(position)
+        //delete friend from friend list and delete user from the friend's friend list
         helperfunctions.Friendremoveuser(userstore!!, userstore!!.friends.get(position).email, "friendAdapter")
         userstore!!.friends.removeAt(position)
         helperfunctions.updateUser(userstore!!, "friendAdapter")
@@ -181,8 +208,13 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         friend_viewAdapter.notifyItemRangeInserted(0,friendlist.size)
 
     }
+    /**
+     * reject the friend invitation indicated by position in the pending friend list when called upon
+     * @param position the position in the pending friend list of the invitation to be rejected
+     */
     public fun refusefriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
+        //remove from invitations
         userstore!!.pendingfriends.removeAt(position)
         helperfunctions.updateUser(userstore!!, "pendingfriendAdapter")
         //notify the adapter
@@ -191,10 +223,15 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         pendingfriendlist.addAll(userstore!!.pendingfriends)
         pendingfriend_viewAdapter.notifyItemRangeInserted(0,pendingfriendlist.size)
     }
+    /**
+     * accept the friend invitation indicated by position in the pending friend list when called upon
+     * @param position the position in the pending friend list of the invitation to be accepted
+     */
     public fun acceptfriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
-
+        //add user to the friend's friend list
         helperfunctions.Friendadduser(userstore!!, friend.email, "pendingfriendAdapter")
+        // add friend to user's friend list and remove from invitations
         userstore!!.pendingfriends.removeAt(position)
         userstore!!.friends.add(0,friend)
         helperfunctions.updateUser(userstore!!, "pendingfriendAdapter")
@@ -211,6 +248,8 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
     }
 
+    //---- ui funcitons ----
+
     override fun onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
@@ -223,8 +262,8 @@ class myfriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
+            //set listener for changing to other pages
             R.id.map -> {
-                // Handle the camera action
                 val intent = Intent(this, mapboxActivity2::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)

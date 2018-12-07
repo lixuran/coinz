@@ -12,12 +12,16 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import com.ilpcoursework.coinz.*
 import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
+import com.ilpcoursework.coinz.DownloadCompleteListener
+import com.ilpcoursework.coinz.DownloadFileTask
+import com.ilpcoursework.coinz.LoginActivity
+import com.ilpcoursework.coinz.R
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -61,35 +65,32 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private var locationLayerPlugin: LocationLayerPlugin? = null
 
     private lateinit var downloader: DownloadFileTask
-    val dbHelper = FeedReaderDbHelper(this)
-
-    private val preferencesFile = "MyPrefsFile" // for storing preferences
-    private var lastdate: String =""
-
 
     private var db = FirebaseFirestore.getInstance();
     private var mAuth: FirebaseAuth? = null
     private var user: FirebaseUser?=null
     private var userstore: User?=null
 
-    private var coinsindex = hashMapOf("SHIL" to 1,"DOLR" to 2,"QUID" to 3,"PENY" to 4 )
     private var coinsmapping = hashMapOf("SHIL" to R.drawable.bluedragon,"DOLR" to R.drawable.greendragon,"QUID" to R.drawable.yellowdragon,"PENY" to R.drawable.reddragon)
     private var icons:IntArray = intArrayOf(R.drawable.bluedragon, R.drawable.greendragon, R.drawable.yellowdragon, R.drawable.reddragon)
 
-    //overide lifecycle funcitons
+    //---- overide lifecycle funcitons-----
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapbox2)
         setSupportActionBar(toolbar)
+        // from signup or welcoming activity get downloaded user information
         userstore = intent.extras["useridentity"] as? User
 
-
+        //set navigation slidebar
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
+        //set slidebar header info
         val headerview =nav_view.getHeaderView(0)
         val user_name=headerview.findViewById<View>(R.id.user_name)as TextView
         val user_email=headerview.findViewById<View>(R.id.user_email)as TextView
@@ -106,6 +107,8 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         peny_view.text = userstore?.mypenys.toString().split(".")[0]
         quid_view.text = userstore?.myquids.toString().split(".")[0]
         shil_view.text = userstore?.myshils.toString().split(".")[0]
+
+        //initialise mapbox
         Mapbox.getInstance(this, getString(R.string.access_token_public))
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
@@ -119,6 +122,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
+        //start location engine
         try {
             locationEngine?.requestLocationUpdates()
         } catch (ignored: SecurityException) {
@@ -165,7 +169,9 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         super.onLowMemory()
         mapView?.onLowMemory()
     }
-    //ui functions
+
+    //-----ui functions----
+
     override fun onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
@@ -199,7 +205,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 startActivity(intent)
             }
             R.id.signout -> {
-                FirebaseAuth.getInstance().signOut();
+                FirebaseAuth.getInstance().signOut()
                 val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
             }
@@ -210,7 +216,12 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return true
     }
 
-    //from slides, implement map and location funcitons
+    //----- implement map and location funcitons----
+
+    /**
+     *  when map is ready , start to load the coins and enable
+     *  the location functionality.
+     */
     override fun onMapReady(mapboxMap: MapboxMap?) {
         if (mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
@@ -219,44 +230,44 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             // Set user interface options
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
-            // Make location information available
-
 
             val curdatestring =getcurdate()
-            val url = "http://homepages.inf.ed.ac.uk/stg/coinz/" +curdatestring + "/coinzmap.geojson"
-
+            val url = "http://homepages.inf.ed.ac.uk/stg/coinz/$curdatestring/coinzmap.geojson"
+            //check if the date has changed since last login
             if(userstore?.lastdate!=curdatestring || userstore?.lastdate==null) {
                 userstore?.lastdate = curdatestring
+                //if date changed , update user gold with interest
                 userstore?.gold =userstore!!.gold* updategold(userstore!!.lastdate!!)
+                //reset all date related information in user
                 userstore?.update_settings()
                 updateUser()
                 downloader = DownloadFileTask(this)
                 downloader.execute(url)
             }
             else{
-                rendercoins(null)
+                renderCoins(null)
 
             }
+            // Make location information available
+            // call this function only when map is ready to make sure the location shows properly
             enableLocation()
-
-
         }
     }
+
+    /**
+     * on downlaod complete, save todays rate to the user object, and render coins to give player
+     * information on the boarder of the playable area
+     * @param result the string that contains geojson style coin information
+     */
     override fun downloadComplete(result: String) {
-
-
         save_rate_preferrences(result)
-        rendercoins(null)
+        renderCoins(null)
     }
-    private fun updategold(lastdate:String):Double{
-        val lastdates = lastdate.split("/").map { item->item.toInt() }
 
 
-        val date1= LocalDate.of(lastdates[0],lastdates[1],lastdates[2])
-        val date2 = LocalDate.now()
-        val days = date1.until(date2, ChronoUnit.DAYS)
-        return 1.001.pow(days.toInt())
-    }
+    /**
+     * enable tracking location if have permission to accesss location
+     */
     private fun enableLocation() {
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
             Log.d(tag, "Permissions are granted")
@@ -269,6 +280,9 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    /**
+     * set location engine parameter including update speed and task priority
+     */
     @SuppressWarnings("MissingPermission")
     private fun initialiseLocationEngine() {
         locationEngine = LocationEngineProvider(this)
@@ -290,10 +304,9 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    // initialise location layer to tract user position
     @SuppressWarnings("MissingPermission")
     private fun initialiseLocationLayer() {
-//       Lifecycle lifecycle = getLifecycle();
-//       lifecycle.addObserver(locationLayerPlugin!!);
         if (mapView == null) {
             Log.d(tag, "mapView is null")
         } else {
@@ -310,9 +323,16 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
     }
+    //inherited from listener
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
         Log.d(tag, "Permissions: $permissionsToExplain")
     }
+
+    /**
+     *   on location change , automatically collect those coins that
+     *   are within collectable distance, and render the remaining coins.
+     *   @param location the updated location
+     */
     override fun onLocationChanged(location: Location?) {
         if (location == null) {
             Log.d(tag, "[onLocationChanged] location is null")
@@ -326,6 +346,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 val g = f.geometry()
                 val point = g as Point
                 counter++
+                //
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
                 if(distance<100 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
@@ -345,7 +366,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
             updateUser()
             map?.clear()
-            rendercoins(location)
+            renderCoins(location)
         }
     }
 
@@ -358,7 +379,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         Log.d(tag, "[onConnected] requesting location updates")
         locationEngine?.requestLocationUpdates()
     }
-    //for permission
+    //request for permission
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         permissionsManager.onRequestPermissionsResult(requestCode,permissions,grantResults)
     }
@@ -372,7 +393,8 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         else
         {
             Log.e(tag, "[onPermissionResult] granted == $granted")
-            //TODO("not implemented")//open a dialog with user
+            Toast.makeText(this, "location permission not granted.",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -385,13 +407,32 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     //helper functions below
+    /**
+     *@param lastdate the last time when user login
+     *@return the ratio to multiple the current gold user possess
+     */
+    private fun updategold(lastdate:String):Double{
+        // calculate the time between last login and current login
+        val lastdates = lastdate.split("/").map { item->item.toInt() }
+        val date1= LocalDate.of(lastdates[0],lastdates[1],lastdates[2])
+        val date2 = LocalDate.now()
+        val days = date1.until(date2, ChronoUnit.DAYS)
+        return 1.001.pow(days.toInt())
+    }
 
-    private fun rendercoins(location: Location?) {
+    /**
+     * render the coins on the map, based on the location information.
+     * only coins that are within viewable distance and haven't been colloceted yet would be
+     * shown on the map
+     * @param location the updated location
+     */
+    private fun renderCoins(location: Location?) {
         var index = 0
         fc = FeatureCollection.fromJson(userstore!!.result!!)
         featureList = fc.features()
 
         for (f in featureList.orEmpty()) {
+            //for each feature get the location of the coin
             if(userstore!!.collectedcoins[index]==1) {
                 index += 1
                 continue
@@ -400,8 +441,10 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val g = f.geometry()
             val p = f.properties()?.asJsonObject
             val currency:String = p?.get("currency").toString().substring(1,5)
-            val point: Point = g as Point // mapping from ? to point might be unsafe?
-            var distance :Double=0.0
+            val point: Point = g as Point
+            // calculate distance between current location and coin position
+            // if location is unknown then assume user can see the coin
+            var distance: Double =0.0
             if(location!= null ){  distance = LatLng(location.latitude,location.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))}
             else {
                 distance= 0.0
@@ -410,18 +453,20 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 val iconFactory = IconFactory.getInstance(this);
                 val icon = iconFactory.fromResource(coinsmapping.get(currency)!!)
 
-
                 // Add the custom icon marker to the map
-                val marker=map?.addMarker(MarkerOptions()
+                map?.addMarker(MarkerOptions()
                         .position(LatLng(point.latitude(), point.longitude()))
                         .title(p?.get("marker-symbol").toString())
                         .snippet(p?.get("currency").toString().substring(1,5)+": "+p?.get("value").toString().substring(1,4))
                         .icon(icon)
                 )
-                //.icon(icon));
             }
         }
     }
+
+    /**
+     *   save currency exchange rate from the downloaded string
+     */
     private fun save_rate_preferrences(result:String){
         val jsonObj = JSONObject(result)
         val rates = jsonObj.getJSONObject("rates")
@@ -437,12 +482,16 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         updateUser()
 
     }
+
     private fun getcurdate ():String{
         val curdate = LocalDateTime.now()
         val format = DateTimeFormatter.ofPattern("yyyy/MM/dd")
         return format.format(curdate)
     }
 
+    /**
+     *  upload the user object to cloud firestore to synchrinise.
+     */
     private fun updateUser(){
         if(userstore!=null) {
             db.collection("users")
