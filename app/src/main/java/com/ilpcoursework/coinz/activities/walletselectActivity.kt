@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.content_walletselect.*
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
-
+//aaa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_walletselect)
