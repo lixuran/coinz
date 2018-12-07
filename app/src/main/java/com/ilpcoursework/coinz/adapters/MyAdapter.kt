@@ -10,23 +10,19 @@ import android.widget.TextView
 import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.R
-import com.ilpcoursework.coinz.activities.MywalletActivity2
+import com.ilpcoursework.coinz.activities.MywalletActivity
 
-class MyAdapter(private val myDataset: MutableList<Coin>, userstore: User, activity2: MywalletActivity2) :
+class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore: User, private var activity2: MywalletActivity) :
         RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
     private var coinsmapping = hashMapOf("SHIL" to R.drawable.bluecoin,"DOLR" to R.drawable.greencoin,"QUID" to R.drawable.yellowcoin,"PENY" to R.drawable.redcoin)
-    private var userstore = userstore
-    private var activity2 = activity2
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder.
-    // Each data item is just a string in this case that is shown in a TextView.
 
-    class MyViewHolder// We also create a constructor that accepts the entire item row
-    // and does the view lookups to find each subview
+    // the view holder is a view that gives referrence to each item 's view in the list of friends
+    class MyViewHolder
     (itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // Your holder should contain a member variable
-        // for any view that will be set as you render a row
+        // holder should contain a member variable
+        // for any view that will be set when rendering the row
         var textView: TextView
         var bankingButton: Button
         var giftButton: Button
@@ -38,8 +34,7 @@ class MyAdapter(private val myDataset: MutableList<Coin>, userstore: User, activ
             bankingButton = itemView.findViewById<View>(R.id.bankingButton) as Button
             giftButton = itemView.findViewById<View>(R.id.giftButton) as Button
 
-        }// Stores the itemView in a public final member variable that can be used
-        // to access the context from any ViewHolder instance.
+        }
     }
 
     // Create new views (invoked by the layout manager)
@@ -48,29 +43,28 @@ class MyAdapter(private val myDataset: MutableList<Coin>, userstore: User, activ
         // create a new view
         val myview = LayoutInflater.from(parent.context)
                 .inflate(R.layout.my_text_view, parent, false)
-        // set the view's size, margins, paddings and layout parameters
-        //here
+
         return MyViewHolder(myview)
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         // - get element from your dataset at this position
-        // - replace the contents of the view with that element
+
         holder.textView.text = myDataset[position].tostring()
+        // currency might come with "\""
         val clean=myDataset[position].currency.removePrefix("\"")
         val clean2=clean.removeSuffix("\"")
+        // set the view for each coin to be displayed
         holder.imageView.setImageResource(coinsmapping[ clean2]!!)
         holder.giftButton.text ="send gift"
         holder.bankingButton.text = "save it"
-        holder.giftButton.setOnClickListener { view ->
+        holder.giftButton.setOnClickListener { _ ->
 
-                activity2.showdialog(myDataset[position])
-
-
+                activity2.show_dialog(myDataset[position])
         }
-        holder.bankingButton.setOnClickListener { view ->
-            activity2.sendtobank(position)
+        holder.bankingButton.setOnClickListener { _ ->
+            activity2.sandbank(position)
 
         }
     }

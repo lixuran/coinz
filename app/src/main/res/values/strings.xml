@@ -127,5 +127,14 @@
     <string name="truetitle">also known as coinZ</string>
     <string name="testing">testing</string>
     <string name="save_it">save it</string>
-
+    <string name="penytext">fire dragon bone:  %1$s kg</string>
+    <string name="dolrtext">ancient dragon bone:  %1$s kg</string>
+    <string name="quidtext">blood dragon bone:  %1$s kg</string>
+    <string name="shiltext">frost dragon bone:  %1$s kg</string>
+    <string name="goldtext">gold dragon bone:  %1$s </string>
+    <string name="penyrate">%1$s gold per kg.</string>
+    <string name="dolrrate">%1$s gold per kg.</string>
+    <string name="quidrate">%1$s gold per kg.</string>
+    <string name="shilrate">%1$s gold per kg.</string>
+    <string name="send">send</string>
 </resources>

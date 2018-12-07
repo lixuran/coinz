@@ -21,7 +21,7 @@ class User :Serializable{
     var dolrrate:Double=0.0
     var quidrate:Double=0.0
     var penyrate:Double=0.0
-    var bankedtoday:Int =0
+    var bankedToday:Int =0
     var collectedcoins = mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
     var friends  = mutableListOf<friend>()
     var pendingfriends  = mutableListOf<friend>()
@@ -31,7 +31,7 @@ class User :Serializable{
         collectedtoday=0
         collectedcoins=mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
         result =null
-        bankedtoday = 0
+        bankedToday = 0
         for (coin in coins){
             if(timebetween(coin.date)>=14){
                 coins.remove(coin)
@@ -64,7 +64,7 @@ class User :Serializable{
         myquids=0.0
         mypenys=0.0
         collectedtoday=0
-        bankedtoday=0
+        bankedToday=0
     }
 }
 

@@ -25,7 +25,6 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activities.MapboxActivity" />
-        <activity android:name=".SignupActivity" />
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login">
@@ -35,35 +34,29 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings" />
-        <activity
-            android:name=".activities.CoinActivity"
-            android:label="@string/title_activity_coin"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".activities.MywalletActivity2"
+            android:name=".activities.MywalletActivity"
             android:label="@string/title_activity_mywallet2"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".activities.SignupActivity2"
+            android:name=".activities.SignupActivity"
             android:label="@string/title_activity_signup2" />
-        <activity android:name=".activities.welcomingActivity" />
+        <activity android:name=".activities.WelcomingActivity" />
         <activity
             android:name=".activities.walletselectActivity"
             android:label="@string/title_activity_walletselect"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".activities.profileActivity"
+            android:name=".activities.ProfileActivity"
             android:label="@string/title_activity_profile"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".activities.mapboxActivity2"
+            android:name=".activities.MapboxActivity2"
             android:label="@string/title_activity_mapbox2"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".activities.myfriendActivity"
+            android:name=".activities.MyFriendActivity"
             android:label="@string/title_activity_myfriend"
             android:theme="@style/AppTheme"></activity>
     </application>

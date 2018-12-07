@@ -51,7 +51,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlin.math.pow
 
-class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener , OnMapReadyCallback, PermissionsListener, LocationEngineListener,MapboxMap.OnMapClickListener, DownloadCompleteListener {
+class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener , OnMapReadyCallback, PermissionsListener, LocationEngineListener,MapboxMap.OnMapClickListener, DownloadCompleteListener {
     private lateinit var  fc: FeatureCollection
     private var featureList: List<Feature>? = null
 
@@ -66,13 +66,12 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     private lateinit var downloader: DownloadFileTask
 
-    private var db = FirebaseFirestore.getInstance();
+    private var db = FirebaseFirestore.getInstance()
     private var mAuth: FirebaseAuth? = null
     private var user: FirebaseUser?=null
     private var userstore: User?=null
 
-    private var coinsmapping = hashMapOf("SHIL" to R.drawable.bluedragon,"DOLR" to R.drawable.greendragon,"QUID" to R.drawable.yellowdragon,"PENY" to R.drawable.reddragon)
-    private var icons:IntArray = intArrayOf(R.drawable.bluedragon, R.drawable.greendragon, R.drawable.yellowdragon, R.drawable.reddragon)
+    private var coinsMapping = hashMapOf("SHIL" to R.drawable.bluedragon,"DOLR" to R.drawable.greendragon,"QUID" to R.drawable.yellowdragon,"PENY" to R.drawable.reddragon)
 
     //---- overide lifecycle funcitons-----
 
@@ -91,23 +90,23 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
         nav_view.setNavigationItemSelectedListener(this)
         //set slidebar header info
-        val headerview =nav_view.getHeaderView(0)
-        val user_name=headerview.findViewById<View>(R.id.user_name)as TextView
-        val user_email=headerview.findViewById<View>(R.id.user_email)as TextView
-        val gold_view=headerview.findViewById<View>(R.id.gold_view)as TextView
-        val dolr_view=headerview.findViewById<View>(R.id.dolr_view)as TextView
-        val peny_view=headerview.findViewById<View>(R.id.peny_view)as TextView
-        val quid_view=headerview.findViewById<View>(R.id.quid_view)as TextView
-        val shil_view=headerview.findViewById<View>(R.id.shil_view)as TextView
 
-        user_name.text = userstore?.username
-        user_email.text = userstore?.email
-        gold_view.text = userstore?.gold.toString().split(".")[0]
-        dolr_view.text = userstore?.mydolrs.toString().split(".")[0]
-        peny_view.text = userstore?.mypenys.toString().split(".")[0]
-        quid_view.text = userstore?.myquids.toString().split(".")[0]
-        shil_view.text = userstore?.myshils.toString().split(".")[0]
+        val headerView =nav_view.getHeaderView(0)
+        val username=headerView.findViewById<View>(R.id.user_name)as TextView
+        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
+        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
+        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
+        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
+        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
+        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
 
+        username.text = userstore?.username
+        userEmail.text = userstore?.email
+        goldView.text = userstore?.gold.toString().split(".")[0]
+        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
+        penyView.text = userstore?.mypenys.toString().split(".")[0]
+        quidView.text = userstore?.myquids.toString().split(".")[0]
+        shilView.text = userstore?.myshils.toString().split(".")[0]
         //initialise mapbox
         Mapbox.getInstance(this, getString(R.string.access_token_public))
         mapView = findViewById(R.id.mapboxMapView)
@@ -144,7 +143,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     override fun onStop() {
         super.onStop()
-        locationEngine?.removeLocationEngineListener(this);//this is from piazza
+        locationEngine?.removeLocationEngineListener(this)//this is from piazza
         locationEngine?.removeLocationUpdates()
         //locationLayerPlugin?.onStop()
         mapView?.onStop()
@@ -185,7 +184,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         when (item.itemId) {
             R.id.map -> {
             // Handle the camera action
-            val intent = Intent(this, mapboxActivity2::class.java)
+            val intent = Intent(this, MapboxActivity2::class.java)
             intent.putExtra("useridentity", userstore)
             startActivity(intent)
         }
@@ -195,12 +194,12 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 startActivity(intent)
             }
             R.id.myprofile -> {
-                val intent = Intent(this, profileActivity::class.java)
+                val intent = Intent(this, ProfileActivity::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
             }
             R.id.companions -> {
-                val intent = Intent(this, myfriendActivity::class.java)
+                val intent = Intent(this, MyFriendActivity::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
             }
@@ -394,7 +393,7 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         {
             Log.e(tag, "[onPermissionResult] granted == $granted")
             Toast.makeText(this, "location permission not granted.",
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -445,13 +444,13 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             // calculate distance between current location and coin position
             // if location is unknown then assume user can see the coin
             var distance: Double =0.0
-            if(location!= null ){  distance = LatLng(location.latitude,location.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))}
+            if(location!= null ) distance = LatLng(location.latitude,location.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
             else {
                 distance= 0.0
             }
             if(distance <250){
-                val iconFactory = IconFactory.getInstance(this);
-                val icon = iconFactory.fromResource(coinsmapping.get(currency)!!)
+                val iconFactory = IconFactory.getInstance(this)
+                val icon = iconFactory.fromResource(coinsMapping.get(currency)!!)
 
                 // Add the custom icon marker to the map
                 map?.addMarker(MarkerOptions()
@@ -497,10 +496,10 @@ class mapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             db.collection("users")
                     .document(user!!.email!!).set(userstore!!)
                     .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " + user!!.email!!);
+                        Log.d(tag, "DocumentSnapshot added with ID: " + user!!.email!!)
                     }
                     .addOnFailureListener(this) {
-                        Log.w(tag, "Error adding document", it);
+                        Log.w(tag, "Error adding document", it)
                     }
         }
     }

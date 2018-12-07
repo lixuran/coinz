@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
+import android.view.View.GONE
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
@@ -27,11 +28,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
-import com.ilpcoursework.coinz.activities.SignupActivity2
-import com.ilpcoursework.coinz.activities.mapboxActivity2
+import com.ilpcoursework.coinz.activities.MapboxActivity2
+import com.ilpcoursework.coinz.activities.SignupActivity
 import kotlinx.android.synthetic.main.activity_login.*
 import java.util.*
 
+@Suppress("DEPRECATION")
 /**
  * A login screen that offers login via email/password.
  */
@@ -39,11 +41,9 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-//    private var mAuthTask: UserLoginTask? = null
     private var mAuth: FirebaseAuth? = null
     private val tag = "LoginActivity"
-    private var db = FirebaseFirestore.getInstance();
-    private var user: FirebaseUser?=null
+    private var db = FirebaseFirestore.getInstance()
     private var userstore: User?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,37 +58,40 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             }
             false
         })
-
+        //add button listeners
         email_sign_in_button.setOnClickListener { attemptLogin() }
-        //sign_up_button.setOnClickListener{view ->switchToSignup()}
-        sign_up_button.setOnClickListener{view -> switchToSignup()}
+        sign_up_button.setOnClickListener{ _ -> switchToSignup()}
 
     }
     override fun onStart() {
         super.onStart()
+        //auto signin
         // Check if user is signed in (nonnull) and update UI
         updateUI(mAuth?.currentUser)
     }
 
+    /**
+     * update ui based on the current user
+     */
     private fun updateUI( user:FirebaseUser?) {
         if(user==null){
-            //todo("complete this")
+            //if not yet logged in
+            // hide progress bar and show the buttons and texts
             showProgress(false)
-
-            email_sign_in_button.setVisibility(View.VISIBLE);
-            sign_up_button.setVisibility(View.VISIBLE);
+            email_sign_in_button.visibility = View.VISIBLE
+            sign_up_button.visibility = View.VISIBLE
             subtitle.visibility = View.VISIBLE
             welcomeinfo.visibility = View.VISIBLE
         }
         else{
-            val id =user!!.uid
-            val docRef = db.collection("users").document(user!!.email!!);
+            // download the user informatio to userstore and pass on to the mapbox activity
+            val docRef = db.collection("users").document(user.email!!)
             docRef.get().addOnSuccessListener {
                 documentSnapshot ->
                 userstore= documentSnapshot.toObject(User::class.java)
                 Toast.makeText(this, "logging in",
-                        Toast.LENGTH_SHORT).show();
-                val intent = Intent(this, mapboxActivity2::class.java)
+                        Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MapboxActivity2::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
 
@@ -98,21 +101,21 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     }
 
     private fun switchToSignup() {
-        val intent = Intent(this, SignupActivity2::class.java)
+        val intent = Intent(this, SignupActivity::class.java)
         startActivity(intent)
     }
+    // use autocomplete
     private fun populateAutoComplete() {
         if (!mayRequestContacts()) {
             return
         }
-
         loaderManager.initLoader(0, null, this)
     }
 
     private fun mayRequestContacts(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true
-        }
+         }
         if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
             return true
         }
@@ -183,42 +186,42 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            sign_up_button.setVisibility(View.GONE);
-            email_sign_in_button.setVisibility(View.GONE);
-            subtitle.visibility = View.GONE
-            welcomeinfo.visibility = View.GONE
+            sign_up_button.visibility = GONE
+            email_sign_in_button.visibility = GONE
+            subtitle.visibility = GONE
+            welcomeinfo.visibility = GONE
             mAuth?.signInWithEmailAndPassword(emailStr, passwordStr)
             ?.addOnCompleteListener(this) {task->
 
-                if (task.isSuccessful()) {
+                if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-                    Log.d(tag, "signInWithEmail:success");
-                    val user = mAuth?.getCurrentUser();
-                    updateUI(user);
+                    Log.d(tag, "signInWithEmail:success")
+                    val user = mAuth?.currentUser
+                    updateUI(user)
                 } else {
                     // If sign in fails, display a message to the user.
-                    Log.w(tag, "signInWithEmail:failure", task.getException());
+                    Log.w(tag, "signInWithEmail:failure", task.getException())
                     Toast.makeText(this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show();
-                    updateUI(null);
+                            Toast.LENGTH_SHORT).show()
+                    updateUI(null)
                 }
-
-                // ...
             }
-
         }
     }
 
+    /**
+     * email validation
+     */
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
         return email.contains("@")
     }
 
+    /**
+     * pwd validation
+     */
     private fun isPasswordValid(password: String): Boolean {
-        //TODO: Replace this with your own logic
-        return password.length > 4 && password.length < 30
+        return password.length in 5..29
     }
-
     /**
      * Shows the progress UI and hides the login form.
      */
@@ -229,33 +232,35 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         // the progress spinner.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
+            //show or hide the login form based on the state of the login process , given by show
+            login_form.visibility = if (show) GONE else View.VISIBLE
             login_form.animate()
                     .setDuration(shortAnimTime)
                     .alpha((if (show) 0 else 1).toFloat())
                     .setListener(object : AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation: Animator) {
-                            login_form.visibility = if (show) View.GONE else View.VISIBLE
+                            login_form.visibility = if (show) GONE else View.VISIBLE
                         }
                     })
 
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
+            login_progress.visibility = if (show) View.VISIBLE else GONE
             login_progress.animate()
                     .setDuration(shortAnimTime)
                     .alpha((if (show) 1 else 0).toFloat())
                     .setListener(object : AnimatorListenerAdapter() {
                         override fun onAnimationEnd(animation: Animator) {
-                            login_progress.visibility = if (show) View.VISIBLE else View.GONE
+                            login_progress.visibility = if (show) View.VISIBLE else GONE
                         }
                     })
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
+            login_progress.visibility = if (show) View.VISIBLE else GONE
+            login_form.visibility = if (show) GONE else View.VISIBLE
         }
     }
+
+    //---- override loader functionalities ----
 
     override fun onCreateLoader(i: Int, bundle: Bundle?): Loader<Cursor> {
         return CursorLoader(this,
@@ -300,20 +305,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 ContactsContract.CommonDataKinds.Email.ADDRESS,
                 ContactsContract.CommonDataKinds.Email.IS_PRIMARY)
         val ADDRESS = 0
-        val IS_PRIMARY = 1
     }
 
     companion object {
-
         /**
          * Id to identity READ_CONTACTS permission request.
          */
         private val REQUEST_READ_CONTACTS = 0
-
-        /**
-         * A dummy authentication store containing known user names and passwords.
-         * TODO: remove after connecting to a real authentication system.
-         */
-        private val DUMMY_CREDENTIALS = arrayOf("foo@example.com:hello", "bar@example.com:world")
     }
 }

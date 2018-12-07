@@ -113,12 +113,12 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
             startActivity(intent)
         }
         myfriend_button.setOnClickListener { view ->
-            val intent = Intent(this, myfriendActivity::class.java)
+            val intent = Intent(this, MyFriendActivity::class.java)
             intent.putExtra("useridentity", userstore)
             startActivity(intent)
         }
         myprofile_button.setOnClickListener { view ->
-            val intent = Intent(this, profileActivity::class.java)
+            val intent = Intent(this, ProfileActivity::class.java)
             intent.putExtra("useridentity", userstore)
             startActivity(intent)
         }

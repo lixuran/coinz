@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/map"
     android:alpha="0.6"
-    tools:context=".activities.welcomingActivity">
+    tools:context=".activities.WelcomingActivity">
 
     <TextView
         android:id="@+id/textView2"
