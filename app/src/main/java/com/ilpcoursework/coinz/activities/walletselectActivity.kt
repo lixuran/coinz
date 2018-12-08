@@ -31,10 +31,10 @@ class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         val greentext: TextView = findViewById(R.id.greenrate) as TextView
         val yellowtext: TextView = findViewById(R.id.yellowrate) as TextView
 
-        yellowtext.text =getString(R.string.quidrate, userstore?.myquids.toString().split(".")[0])
-        bluetext.text =getString(R.string.shilrate, userstore?.myshils.toString().split(".")[0])
-        redtext.text =getString(R.string.penyrate, userstore?.mypenys.toString().split(".")[0])
-        greentext.text =getString(R.string.dolrrate, userstore?.mydolrs.toString().split(".")[0])
+        yellowtext.text =getString(R.string.quidrate, userstore?.quidrate.toString().split(".")[0])
+        bluetext.text =getString(R.string.shilrate, userstore?.shilrate.toString().split(".")[0])
+        redtext.text =getString(R.string.penyrate, userstore?.penyrate.toString().split(".")[0])
+        greentext.text =getString(R.string.dolrrate, userstore?.dolrrate.toString().split(".")[0])
         // set the listeners for the buttons to open wallet for each type of coins
         // the type is passed through the intent
         blue_button.setOnClickListener { view ->

@@ -360,7 +360,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 counter++
                 // for each coin calculate the distance from player's current position , mark those are within 25 meters as collected
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
-                if(distance<25 && userstore!!.collectedcoins[counter]==0){
+                if(distance<=25 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
                     userstore!!.collectedtoday= userstore!!.collectedtoday +1
                     val id =  f.properties()?.get("id").toString()
