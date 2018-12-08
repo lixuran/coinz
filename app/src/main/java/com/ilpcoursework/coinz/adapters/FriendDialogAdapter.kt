@@ -32,7 +32,7 @@ class FriendDialogAdapter(private val myDataset: MutableList<friend>, private va
                                     viewType: Int): MyViewHolder {
         // create a new view
         val myview = LayoutInflater.from(parent.context)
-                .inflate(R.layout.myfriend_view, null, false)
+                .inflate(R.layout.my_friend_view, null, false)
 
         return MyViewHolder(myview)
     }

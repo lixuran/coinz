@@ -31,7 +31,7 @@ class FriendAdapter(private val myDataset: MutableList<friend>, private var acti
                                     viewType: Int): MyViewHolder {
         // create a new view
         val myview = LayoutInflater.from(parent.context)
-                .inflate(R.layout.myfriend_view, parent, false)
+                .inflate(R.layout.my_friend_view, parent, false)
 
         return MyViewHolder(myview)
     }

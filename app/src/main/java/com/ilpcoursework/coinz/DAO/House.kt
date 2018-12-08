@@ -4,17 +4,19 @@ import com.google.type.LatLng
 
 class House {
     var name :String=""
-    var currency:String=""
     var price : Double=0.0
     var profit: Double=0.0
     var latlng:LatLng= LatLng.getDefaultInstance()
     constructor() {}
-    constructor(name:String,currency: String,price:Double,profit:Double,latlng:LatLng) {
+    constructor(name:String,price:Double,profit:Double,latlng:LatLng) {
         this.name=name
-        this.currency=currency
         this.price=price
         this.profit=profit
         this.latlng=latlng
 
     }
+    override fun toString():String{
+        return "house "+name+" costs "+price.toString()
+    }
+
 }

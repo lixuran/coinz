@@ -8,11 +8,9 @@ class Coin :Serializable{
     var currency=""
     var date =""
     var type :Int = 0 // 0 stand for non gift coin and one stand for coins received as a gift
-    public fun getcur(): String{
-        return this.currency
-    }
-    public fun tostring(): String {
-        return "value: "+value.toString()+ "collected at: "+date
+
+    fun tostring(): String {
+        return "value: "+value.toString()+ "collected at: "+date +"more info>>"
     }
     constructor() {}
     constructor(id: String,value: Double,currency: String,date:String) {

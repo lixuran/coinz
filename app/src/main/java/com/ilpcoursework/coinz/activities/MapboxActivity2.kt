@@ -72,7 +72,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private var userstore: User?=null
 
     private var coinsMapping = hashMapOf("SHIL" to R.drawable.bluedragon,"DOLR" to R.drawable.greendragon,"QUID" to R.drawable.yellowdragon,"PENY" to R.drawable.reddragon)
-
+    private var namesMapping = hashMapOf("SHIL" to "frost dragon","DOLR" to "acient dragon","QUID" to "blood dragon","PENY" to " fire dragon")
     //---- overide lifecycle funcitons-----
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -454,12 +454,12 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             if(distance <250){
                 val iconFactory = IconFactory.getInstance(this)
                 val icon = iconFactory.fromResource(coinsMapping.get(currency)!!)
-
                 // Add the custom icon marker to the map
+                val currency =p?.get("currency").toString().substring(1,5)
                 map?.addMarker(MarkerOptions()
                         .position(LatLng(point.latitude(), point.longitude()))
                         .title(p?.get("marker-symbol").toString())
-                        .snippet(p?.get("currency").toString().substring(1,5)+": "+p?.get("value").toString().substring(1,4))
+                        .snippet(namesMapping[currency]+" appeared! : size: "+p?.get("marker-symbol").toString())
                         .icon(icon)
                 )
             }

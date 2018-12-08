@@ -102,6 +102,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         val docRef = db.collection("users").document(userstore!!.email)
         docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
             if (firebaseFirestoreException != null) {
+                // if no longer in this activity the listener exits
                 Log.w(TAG, "listen:error", firebaseFirestoreException)
             }
             //update user object from snapshot

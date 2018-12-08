@@ -34,7 +34,8 @@ object helperfunctions {
                     Log.d(tag, "DocumentSnapshot added with ID: " +friend)
                 }
     }
-    public fun Friendremoveuser(userstore: User, friend:String, tag:String){
+
+    fun Friendremoveuser(userstore: User, friend:String, tag:String){
         val docRef = db.collection("users").document(friend);
         var frienduser : User? =null
         docRef.get().addOnSuccessListener {
@@ -49,11 +50,7 @@ object helperfunctions {
                         Log.d(tag, "DocumentSnapshot added with ID: " +friend);
 
                     }
-
-
         }
-
-
 
     }
     public fun Friendadduser(userstore: User, friend:String, tag:String){

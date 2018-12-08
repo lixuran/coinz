@@ -84,7 +84,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         // show the dialog of the detail rules, also known as the yarl's contract
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         val inflater : LayoutInflater = layoutInflater
-        val view : View = inflater.inflate(R.layout.row_dialog,null)
+        val view : View = inflater.inflate(R.layout.my_help_dialog,null)
         builder.setView(view)
         builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
         val dialog = builder.create()

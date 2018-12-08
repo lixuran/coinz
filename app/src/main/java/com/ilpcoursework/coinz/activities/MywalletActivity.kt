@@ -6,14 +6,18 @@ import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.LoginActivity
@@ -37,6 +41,10 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     private var color:String?=null
     private lateinit var dialog:Dialog
     private var selectedCoins = mutableListOf<Coin>()
+    private var db = FirebaseFirestore.getInstance()
+    private val TAG ="mywalletactivity"
+    private var namesMapping = hashMapOf("SHIL" to "frost dragon","DOLR" to "acient dragon","QUID" to "blood dragon","PENY" to " fire dragon")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mywallet2)
@@ -86,14 +94,42 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             adapter = viewAdapter
 
         }
+        // is this the case?
+        // set realtime update listener for the friend list and invitations
+        val docRef = db.collection("users").document(userstore!!.email)
+        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                // if no longer in this activity the listener exits
+                Log.w(TAG, "listen:error", firebaseFirestoreException)
+            }
+            //update user object from snapshot
+            userstore= documentSnapshot?.toObject(User::class.java)
+            // update the views based on the kind of the change happened.
+            when {
 
+                userstore?.changestate==4 -> {
+                    selectedCoins.clear()
+                    viewAdapter.notifyDataSetChanged()
+                    val iterator= userstore!!.coins.iterator()
+                    while (iterator.hasNext()) {
+                        val coin = iterator.next()
+                        if(coin.currency ==color )
+                        {
+                            selectedCoins.add(0,coin)
+                        }
+                    }
+                    viewAdapter.notifyItemRangeInserted(0,selectedCoins.size)
+                    userstore?.changestate=0
+                }
+            }
+        }
     }
 
     /**
      * send the coin at position in the  coins to the bank
      * @param position the position of the coin in the selected coins
      */
-    fun sandBank(position:Int){
+    fun sendBank(position:Int){
         val cointosent = selectedCoins.get(position)
         // if reached maximum saving allowance, and the coin is not a gift, do nothing
         if(userstore!!.bankedToday>=25 && cointosent.type==0)
@@ -130,14 +166,14 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      *show the dialog for sending coin to a friend
      * @param coin the selected coin
      */
-    fun show_dialog(coin:Coin){
+    fun showSendFriendDialog(coin:Coin){
         // selectedcoin: the index of the coin selected in the coins user possess
         userstore?.selectedcoin=userstore!!.coins.indexOf(coin)
         // does user have friend?
         if(userstore!!.friends.size>0) {
             //set dialog with users friends in the recycler list
             dialog = Dialog(this)
-            dialog.setContentView(R.layout.dialog_layout)
+            dialog.setContentView(R.layout.my_friend_dialog)
             val textView =  dialog.findViewById<TextView>(R.id.textView)!!
             textView.text = getString(R.string.sendprompt)
 
@@ -160,6 +196,30 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
+    /**
+     * show the coin info dialog for each coin , which contains
+     * the value, currency, collected date and indicator of wether it is
+     * send from a friend.
+     */
+    fun showCoinInfoDialog(coin:Coin){
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        val inflater : LayoutInflater = layoutInflater
+        val view : View = inflater.inflate(R.layout.my_help_dialog,null)
+        builder.setView(view)
+        builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
+        val dialog = builder.create()
+        val coinValue= dialog.findViewById<TextView>(R.id.coin_value)
+        val coinCurrency= dialog.findViewById<TextView>(R.id.coin_currency)
+        val coinCollectedTime= dialog.findViewById<TextView>(R.id.coin_collected_time)
+        val coinIsGiven= dialog.findViewById<TextView>(R.id.coin_gift)
+        coinValue?.text= "the bone wegiht"+coin.value.toString()+"kg"
+        coinCurrency?.text= "this is a "+namesMapping[coin.currency]+" bone"
+        coinCollectedTime?.text= "the dragon bone is stored on "+coin.date
+        coinIsGiven?.text= "the dragon bone is"+if(coin.type==1) "given by friend" else "collected from map"
+
+        dialog.show()
+
+    }
     /**
      * send the coin to the selected user in the user dialog
      * @param  coinIndex the index of the coin in the user's coin list

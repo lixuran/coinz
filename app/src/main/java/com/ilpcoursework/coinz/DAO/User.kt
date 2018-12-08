@@ -10,30 +10,34 @@ class User :Serializable{
     var username: String=""
     var email: String=""
     var gold:Double=0.0
-    var myshils:Double=0.0
+    var myshils:Double=0.0      // sum of users shils
     var mydolrs:Double=0.0
     var myquids:Double=0.0
     var mypenys:Double=0.0
-    var collectedtoday:Int=0 // how many coins have been collected today
-    var lastdate:String?=null
-    var result:String?=null
-    var shilrate:Double=0.0
+    var collectedtoday:Int=0   // how many coins have been collected today
+    var lastdate:String?=null   // the last download date of the map
+    var result:String?=null     // the downlaoded map
+    var shilrate:Double=0.0     // the rate of the shil to gold on the download date
     var dolrrate:Double=0.0
     var quidrate:Double=0.0
     var penyrate:Double=0.0
-    var bankedToday:Int =0// how many coins have been send to bank today
+    var bankedToday:Int =0      // how many coins have been send to bank today
     var collectedcoins = mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)// which coin has been collected
     var friends  = mutableListOf<friend>()
     var pendingfriends  = mutableListOf<friend>()
-    var changestate:Int =0
-    var selectedcoin :Int =0
-    var giftToday :Int =0 // how many coins have been sent as gift today
-    public fun update_settings(){
+    var changestate:Int =0      // change state in realtime update, used to decide what kind of update is needed
+    var selectedcoin :Int =0    // which is the selected coin when browsing the sub wallet
+    var giftToday :Int =0       // how many coins have been sent as gift today
+    /**
+     *  when the dates change is detected, reset the user setting
+     */
+    fun update_settings(){
         collectedtoday=0
         collectedcoins=mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
         result =null
         bankedToday = 0
         giftToday=0
+        //remove all coins that are at least two weeks old from the wallet.
         for (coin in coins){
             if(timebetween(coin.date)>=14){
                 coins.remove(coin)
@@ -47,6 +51,10 @@ class User :Serializable{
             }
         }
     }
+
+    /**
+     *  calculate the time between using local date.
+     */
     private fun timebetween(date :String):Int{
 
         val lastdates = date.split("/").map { item->item.toInt() }

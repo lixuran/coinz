@@ -42,7 +42,7 @@ class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore:
                                     viewType: Int): MyViewHolder {
         // create a new view
         val myview = LayoutInflater.from(parent.context)
-                .inflate(R.layout.my_text_view, parent, false)
+                .inflate(R.layout.my_singlecoin_view, parent, false)
 
         return MyViewHolder(myview)
     }
@@ -52,6 +52,10 @@ class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore:
         // - get element from your dataset at this position
 
         holder.textView.text = myDataset[position].tostring()
+        holder.textView.setOnClickListener { _->
+            activity2.showCoinInfoDialog(myDataset[position])
+        }
+
         // currency might come with "\""
         val clean=myDataset[position].currency.removePrefix("\"")
         val clean2=clean.removeSuffix("\"")
@@ -61,10 +65,10 @@ class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore:
         holder.bankingButton.text = "save it"
         holder.giftButton.setOnClickListener { _ ->
 
-                activity2.show_dialog(myDataset[position])
+                activity2.showSendFriendDialog(myDataset[position])
         }
         holder.bankingButton.setOnClickListener { _ ->
-            activity2.sandBank(position)
+            activity2.sendBank(position)
 
         }
     }

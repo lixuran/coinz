@@ -31,7 +31,7 @@ class PendingFriendAdapter(private val myDataset: MutableList<friend>, private v
                                     viewType: Int): MyViewHolder {
         // create a new view
         val myview = LayoutInflater.from(parent.context)
-                .inflate(R.layout.mypendingfriend_view, parent, false)
+                .inflate(R.layout.my_pendingfriend_view, parent, false)
         // set the view's size, margins, paddings and layout parameters
         //here
         return MyViewHolder(myview)
