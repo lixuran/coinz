@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
@@ -188,6 +189,10 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                 adapter = frienddialogviewAdapter
 
             }
+            val buttonView =dialog.findViewById<Button>(R.id.dismiss_button)
+            buttonView.setOnClickListener {
+                    dialog.dismiss()
+            }
             dialog.show()
         }
         else{
@@ -202,23 +207,25 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      * send from a friend.
      */
     fun showCoinInfoDialog(coin:Coin){
+        //set up the alert dialog with dismiss button
         val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         val inflater : LayoutInflater = layoutInflater
-        val view : View = inflater.inflate(R.layout.my_help_dialog,null)
+        val view : View = inflater.inflate(R.layout.my_coininfo_dialog,null)
         builder.setView(view)
         builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
-        val dialog = builder.create()
-        val coinValue= dialog.findViewById<TextView>(R.id.coin_value)
-        val coinCurrency= dialog.findViewById<TextView>(R.id.coin_currency)
-        val coinCollectedTime= dialog.findViewById<TextView>(R.id.coin_collected_time)
-        val coinIsGiven= dialog.findViewById<TextView>(R.id.coin_gift)
+        // get item views
+        val coinValue= view.findViewById<TextView>(R.id.coin_value)
+        val coinCurrency= view.findViewById<TextView>(R.id.coin_currency)
+        val coinCollectedTime= view.findViewById<TextView>(R.id.coin_collected_time)
+        val coinIsGiven= view.findViewById<TextView>(R.id.coin_gift)
+        // set text using coin info.
         coinValue?.text= "the bone wegiht"+coin.value.toString()+"kg"
         coinCurrency?.text= "this is a "+namesMapping[coin.currency]+" bone"
         coinCollectedTime?.text= "the dragon bone is stored on "+coin.date
         coinIsGiven?.text= "the dragon bone is"+if(coin.type==1) "given by friend" else "collected from map"
-
+        //build and show the dialog
+        val dialog = builder.create()
         dialog.show()
-
     }
     /**
      * send the coin to the selected user in the user dialog
@@ -226,7 +233,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      * @param friendIndex the index of the friend in the user's friend list
      */
     fun sendFriend(coinIndex:Int, friendIndex:Int){
-        if(userstore!!.giftToday<50) {
+        if(userstore!!.giftToday<30) {
             val friend = userstore!!.friends.get(friendIndex)
             val coin = userstore!!.coins.get(coinIndex)
             // remove the coin from user's coins

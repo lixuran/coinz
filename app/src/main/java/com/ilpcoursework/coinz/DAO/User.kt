@@ -23,6 +23,9 @@ class User :Serializable{
     var penyrate:Double=0.0
     var bankedToday:Int =0      // how many coins have been send to bank today
     var collectedcoins = mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)// which coin has been collected
+    var propertiesbought= mutableListOf(0,0,0,0)// which house has been bought
+    var housescollected= mutableListOf(0,0,0,0)
+
     var friends  = mutableListOf<friend>()
     var pendingfriends  = mutableListOf<friend>()
     var changestate:Int =0      // change state in realtime update, used to decide what kind of update is needed
@@ -34,6 +37,7 @@ class User :Serializable{
     fun update_settings(){
         collectedtoday=0
         collectedcoins=mutableListOf(0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0,0, 0, 0,0,0)
+        housescollected= mutableListOf(0,0,0,0)
         result =null
         bankedToday = 0
         giftToday=0
@@ -51,7 +55,7 @@ class User :Serializable{
             }
         }
     }
-//
+
     /**
      *  calculate the time between using local date.
      */

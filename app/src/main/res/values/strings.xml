@@ -111,11 +111,12 @@
     <string name="title_activity_profile">profile</string>
     <string name="title_activity_mapbox2">map</string>
     <string name="contract">"let it here by be known, it is the yarl's will that the following facts should be known, and rules be complied when come to the issues around bounty on the dragons:\n
-        1. the dragons scatter around the country side , when approached and killed by the advantures, drop dragon scale. Different type of dragons drop different type of scales.
-        2. the dragon scales that is collected from the dragons can be exchange to gold , subject to exchange rate given by the steward, which would update everyday as the steward sees fit.. larger piece of scale would have better price porpotional to the size.the advantagers can exchange at most 25 pieces of scales for gold at each day.
-        3. the dragon scales that hasn't been exchanged for gold yet get stored in the your inventory, which you can use to send to a friend as a gift.Anyone coin that received as a gift can be exchanged for gold, even if the daily exchange limit has been reached.
-        4. under the yarl 's generous offer, advantures can use their gold to purchase any properties and shops available in the city, provided that they have enough gold. The properties produce gold every day. 
-
+        1. the dragons that roam around the country side , when approached and killed by the advantures, drop dragon bones.It is a valuable resource as it can be made into one of the finest armors and weapons(that is, if you are level 100 at blacksmith, though) Different type of dragons drop different type of scales.
+        2. the dragon bones that is collected from the dragons can be exchange to gold , subject to exchange rate given by the steward, which would update everyday as the steward sees fit.. larger piece of scale would have better price porpotional to the size.the advantagers can exchange at most 25 pieces of scales for gold at each day.
+        3. the dragon bones that hasn't been exchanged for gold yet get stored in the your inventory, which you can use to send to a friend as a gift.Anyone coin that received as a gift can be exchanged for gold, even if the daily exchange limit has been reached.
+        4. you can only send bones to those advantures you know. you can add companions by their username. you can send at most 30 coins a day.
+        5. under the yarl 's generous offer, advantures can use their gold to purchase any properties and shops available in the city, provided that they have enough gold. After a property is purchased, it would produce a gold coin at the property's location. The properties produce gold every day.
+        6. you can see a dragon only when you gets close enough to it.
 
         " </string>
     <string name="prompt_friend_username">input your companion username </string>
@@ -138,6 +139,7 @@
     <string name="shilrate">%1$s gold per kg.</string>
     <string name="send">send</string>
     <string name="sendprompt"> "Who would you like to send?"</string>
+    <string name="dismiss"> dismiss</string>
 
 
 </resources>

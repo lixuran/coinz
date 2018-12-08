@@ -7,16 +7,20 @@ import android.os.PersistableBundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.Coin
+import com.ilpcoursework.coinz.DAO.House
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.DownloadCompleteListener
 import com.ilpcoursework.coinz.DownloadFileTask
@@ -74,7 +78,12 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private var coinsMapping = hashMapOf("SHIL" to R.drawable.bluedragon,"DOLR" to R.drawable.greendragon,"QUID" to R.drawable.yellowdragon,"PENY" to R.drawable.reddragon)
     private var namesMapping = hashMapOf("SHIL" to "frost dragon","DOLR" to "acient dragon","QUID" to "blood dragon","PENY" to " fire dragon")
     //---- overide lifecycle funcitons-----
-
+    private val house1 =House("Breezehome",4000.0,150.0,LatLng(55.9445,-3.1866) )
+    private val house2 =House("Jorrvaskr",3000.0,100.0,LatLng(55.943401,-3.186822) )
+    private val house3 =House("Dragonsreach",6000.0,250.0,LatLng(55.942620,-3.188988) )
+    private val house4 =House("Warmaiden's",2000.0,50.0,LatLng(55.944795,-3.190103))
+    private val houseIconList = listOf<Int>(R.drawable.housewind,R.drawable.housewolf,R.drawable.housecastle,R.drawable.houseshop)
+    private var houses = listOf<House>(house1,house2,house3,house4)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapbox2)
@@ -222,6 +231,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
      *  the location functionality.
      */
     override fun onMapReady(mapboxMap: MapboxMap?) {
+
         if (mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
         } else {
@@ -247,6 +257,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 renderCoins(null)
 
             }
+            renderHouses()
             // Make location information available
             // call this function only when map is ready to make sure the location shows properly
             enableLocation()
@@ -336,18 +347,20 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         if (location == null) {
             Log.d(tag, "[onLocationChanged] location is null")
         } else {
+            // keep tract  of the location locally
             originLocation = location
             setCameraPosition(originLocation)
             var counter =-1
+            //parse the downloaded map
             fc = FeatureCollection.fromJson(userstore!!.result!!)
             featureList = fc.features()
             for (f in featureList.orEmpty()) {
                 val g = f.geometry()
                 val point = g as Point
                 counter++
-                //
+                // for each coin calculate the distance from player's current position , mark those are within 25 meters as collected
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
-                if(distance<100 && userstore!!.collectedcoins[counter]==0){
+                if(distance<25 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
                     userstore!!.collectedtoday= userstore!!.collectedtoday +1
                     val id =  f.properties()?.get("id").toString()
@@ -363,8 +376,11 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 }
 
             }
+            //upload current user state
             updateUser()
+            //re render all markers
             map?.clear()
+            renderHouses()
             renderCoins(location)
         }
     }
@@ -382,7 +398,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         permissionsManager.onRequestPermissionsResult(requestCode,permissions,grantResults)
     }
-
+    // proceed to enable locaiton tracting if permission granted
     override fun onPermissionResult(granted: Boolean) {
         Log.d(tag, "[onPermissionResult] granted == $granted")
         if(granted)
@@ -423,6 +439,93 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     /**
+     * render the houses on the map, set listener to show the house dialog
+     * so that player can view the detailed information of the house.
+     */
+    private fun renderHouses(){
+        for ((index, house) in houses.withIndex()){
+            //render house with icon selected from the house icons list
+            val iconFactory = IconFactory.getInstance(this)
+            val icon = iconFactory.fromResource(houseIconList[index])
+            map?.addMarker(MarkerOptions()
+                    .position(house.latlng)
+                    .title(house.name)
+                    .snippet(house.toString())
+                    .icon(icon))
+        }
+        map?.setOnMarkerClickListener { marker ->
+            if (houses.map { thishouse -> thishouse.name }.contains(marker.getTitle())) {
+                  showHouseDialog(houses.map { thishouse -> thishouse.name }.indexOf(marker.getTitle()))
+            }
+
+            Log.d(tag, "house clicked: " + marker.title)
+             true
+        }
+
+    }
+    private fun showHouseDialog(position:Int){
+        //set up the alert dialog with dismiss button
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        val inflater : LayoutInflater = layoutInflater
+        val view : View = inflater.inflate(R.layout.my_house_dialog,null)
+        builder.setView(view)
+        builder.setPositiveButton("close") { dialog, _ -> dialog!!.dismiss() }
+        // get item views
+        val houseName= view.findViewById<TextView>(R.id.house_name)
+        val housePrice= view.findViewById<TextView>(R.id.house_price)
+        val houseProfit= view.findViewById<TextView>(R.id.house_profit)
+        val buyButton= view.findViewById<Button>(R.id.buy_button)
+        // set text using coin info.
+        houseName?.text= "house name: "+houses[position].name
+        housePrice?.text= "house price: "+houses[position].price.toString()
+        houseProfit?.text= "house produce "+houses[position].profit+"piece of gold per day"
+        // if house has not been bought, display buy option
+        if(userstore!!.propertiesbought[position]==0){
+            buyButton?.text= "purchase"
+            buyButton.setOnClickListener { _->
+                if(userstore!!.gold> houses[position].price ) {
+                    userstore!!.propertiesbought.set(position, 1)
+                    userstore!!.gold-=houses[position].price
+                    buyButton.visibility = View.GONE
+                    Toast.makeText(this, "house purchase complete. come back later to collect your profit!",
+                            Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    Toast.makeText(this, "purchase failed: not enough gold",
+                            Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        // otherwise if reward has not be collected display collect option
+        else{
+            // user can collect the profit if only he is close enough to the property
+            if (originLocation!= null) {
+                val  distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(houses[position].latlng)
+                if (userstore!!.housescollected[position] == 0 && distance<100 ) {
+                    buyButton?.text = "collect profit"
+                    buyButton.setOnClickListener { _ ->
+                        userstore!!.housescollected.set(position, 1)
+                        userstore!!.gold += houses[position].profit
+                        Toast.makeText(this, "house profit collected!",
+                                Toast.LENGTH_SHORT).show()
+                        buyButton.visibility = View.GONE
+                    }
+                }
+                else{
+                    buyButton?.text = "get closer to collect profit"
+                }
+            }
+            else{
+                buyButton.visibility=View.GONE
+            }
+        }
+        //build and show the dialog
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+
+    /**
      * render the coins on the map, based on the location information.
      * only coins that are within viewable distance and haven't been colloceted yet would be
      * shown on the map
@@ -446,7 +549,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val point: Point = g as Point
             // calculate distance between current location and coin position
             // if location is unknown then assume user can see the coin
-            var distance: Double =0.0
+            var distance =0.0
             if(location!= null ) distance = LatLng(location.latitude,location.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
             else {
                 distance= 0.0
@@ -455,11 +558,11 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 val iconFactory = IconFactory.getInstance(this)
                 val icon = iconFactory.fromResource(coinsMapping.get(currency)!!)
                 // Add the custom icon marker to the map
-                val currency =p?.get("currency").toString().substring(1,5)
+                val currencyused =p?.get("currency").toString().substring(1,5)
                 map?.addMarker(MarkerOptions()
                         .position(LatLng(point.latitude(), point.longitude()))
                         .title(p?.get("marker-symbol").toString())
-                        .snippet(namesMapping[currency]+" appeared! : size: "+p?.get("marker-symbol").toString())
+                        .snippet(namesMapping[currencyused]+" appeared! : size: "+p?.get("marker-symbol").toString())
                         .icon(icon)
                 )
             }
