@@ -10,18 +10,16 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.DAO.friend
+import com.ilpcoursework.coinz.HelperFunctions
 import com.ilpcoursework.coinz.LoginActivity
 import com.ilpcoursework.coinz.R
 import com.ilpcoursework.coinz.adapters.FriendAdapter
 import com.ilpcoursework.coinz.adapters.PendingFriendAdapter
-import com.ilpcoursework.coinz.helperfunctions
 import kotlinx.android.synthetic.main.activity_myfriend.*
 import kotlinx.android.synthetic.main.app_bar_myfriend.*
 import kotlinx.android.synthetic.main.content_myfriend.*
@@ -41,6 +39,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     private var db = FirebaseFirestore.getInstance()
     private val TAG ="myfriendactivity"
     private lateinit var friendlist :MutableList<friend>
+    private var helperFunctions= HelperFunctions()
 
     private lateinit var pendingfriendlist :MutableList<friend>
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,22 +55,8 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
         //set navigation header information from user object
         nav_view.setNavigationItemSelectedListener(this)
-        val headerView =nav_view.getHeaderView(0)
-        val username=headerView.findViewById<View>(R.id.user_name)as TextView
-        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
+        helperFunctions.updateHeader(userstore,nav_view)
 
-        username.text = userstore?.username
-        userEmail.text = userstore?.email
-        goldView.text = userstore?.gold.toString().split(".")[0]
-        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
-        penyView.text = userstore?.mypenys.toString().split(".")[0]
-        quidView.text = userstore?.myquids.toString().split(".")[0]
-        shilView.text = userstore?.myshils.toString().split(".")[0]
 
         //initialise the recycler view for friend invitations and friend list
         friendViewManager = LinearLayoutManager(this)
@@ -171,7 +156,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                             val friend = task.getResult()!!.documents.get(0).toObject(User::class.java)
                             if (!friend!!.pendingfriends.map { afriend -> afriend.email }.contains(userstore!!.email)) {
                                 friend.pendingfriends.add(0, friend(userstore!!.username, userstore!!.email))
-                                helperfunctions.friendReceiveUserInvite(friend, "friend invite")
+                                helperFunctions.friendReceiveUserInvite(friend, "friend invite")
                             }
                             Toast.makeText(this, "invitation sent",
                                     Toast.LENGTH_SHORT).show()
@@ -195,9 +180,9 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun deleteFriend(position:Int) {
         //delete friend from friend list and delete user from the friend's friend list
-        helperfunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter")
+        helperFunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter")
         userstore!!.friends.removeAt(position)
-        helperfunctions.updateUser(userstore!!, "FriendAdapter")
+        helperFunctions.updateUser(userstore!!, "FriendAdapter")
         //notify the adapter
         friendlist.clear()
         friendViewAdapter.notifyDataSetChanged()
@@ -213,7 +198,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     fun refuseFriend(position:Int) {
         //remove from invitations
         userstore!!.pendingfriends.removeAt(position)
-        helperfunctions.updateUser(userstore!!, "PendingFriendAdapter")
+        helperFunctions.updateUser(userstore!!, "PendingFriendAdapter")
         //notify the adapter
         pendingfriendlist.clear()
         pendingfriendViewAdapter.notifyDataSetChanged()
@@ -228,11 +213,11 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     fun acceptFriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
         //add user to the friend's friend list
-        helperfunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter")
+        helperFunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter")
         // add friend to user's friend list and remove from invitations
         userstore!!.pendingfriends.removeAt(position)
         userstore!!.friends.add(0,friend)
-        helperfunctions.updateUser(userstore!!, "PendingFriendAdapter")
+        helperFunctions.updateUser(userstore!!, "PendingFriendAdapter")
         //notify the adapter
         pendingfriendlist.clear()
         pendingfriendViewAdapter.notifyDataSetChanged()

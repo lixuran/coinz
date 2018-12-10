@@ -8,13 +8,16 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
+import com.ilpcoursework.coinz.HelperFunctions
 import com.ilpcoursework.coinz.LoginActivity
 import com.ilpcoursework.coinz.R
 import kotlinx.android.synthetic.main.activity_profile.*
@@ -23,7 +26,9 @@ import kotlinx.android.synthetic.main.app_bar_profile.*
 // the activity to show the user's current profile
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
-
+    private var helperFunctions= HelperFunctions()
+    private var db = FirebaseFirestore.getInstance()
+    private var TAG="profile activity"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
@@ -36,28 +41,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
         //initialise the slidebar header using information from the userstore
         nav_view.setNavigationItemSelectedListener(this)
+        helperFunctions.updateHeader(userstore,nav_view)
+
         val penytext =findViewById<View>(R.id.peny) as TextView
         val dolrtext =findViewById<View>(R.id.dolr) as TextView
         val quidtext =findViewById<View>(R.id.quid) as TextView
         val shiltext =findViewById<View>(R.id.shil) as TextView
         val goldtext =findViewById<View>(R.id.gold) as TextView
-        val headerView =nav_view.getHeaderView(0)
-        val username=headerView.findViewById<View>(R.id.user_name)as TextView
-        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
-
-        username.text = userstore?.username
-        userEmail.text = userstore?.email
-        goldView.text = userstore?.gold.toString().split(".")[0]
-        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
-        penyView.text = userstore?.mypenys.toString().split(".")[0]
-        quidView.text = userstore?.myquids.toString().split(".")[0]
-        shilView.text = userstore?.myshils.toString().split(".")[0]
-
         penytext.text =getString(R.string.penytext, userstore?.mypenys.toString().split(".")[0])
         dolrtext.text =getString(R.string.dolrtext, userstore?.mydolrs.toString().split(".")[0])
         quidtext.text =getString(R.string.quidtext, userstore?.myquids.toString().split(".")[0])
@@ -76,6 +66,18 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
+        }
+        //set realtime listener for update.
+        val docRef = db.collection("users").document(userstore!!.email)
+        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                // if no longer in this activity the listener exits
+                Log.w(TAG, "listen:error", firebaseFirestoreException)
+            }
+            //update user object from snapshot
+            userstore= documentSnapshot?.toObject(User::class.java)
+            // update the views based on the kind of the change happened.
+
         }
     }
 

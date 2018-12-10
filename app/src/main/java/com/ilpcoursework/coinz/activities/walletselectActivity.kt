@@ -6,11 +6,13 @@ import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.MenuItem
-import android.view.View
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
+import com.ilpcoursework.coinz.HelperFunctions
 import com.ilpcoursework.coinz.LoginActivity
 import com.ilpcoursework.coinz.R
 import kotlinx.android.synthetic.main.activity_walletselect.*
@@ -20,7 +22,9 @@ import kotlinx.android.synthetic.main.content_walletselect.*
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
-//
+    private var helperFunctions= HelperFunctions()
+    private var db = FirebaseFirestore.getInstance()
+    private val TAG ="wallectselect"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_walletselect)
@@ -68,23 +72,21 @@ class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
+        //initialise the slidebar header using information from the userstore
         nav_view.setNavigationItemSelectedListener(this)
-        val headerView =nav_view.getHeaderView(0)
-        val username=headerView.findViewById<View>(R.id.user_name)as TextView
-        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
+        helperFunctions.updateHeader(userstore,nav_view)
+        //set realtime listener for update.
+        val docRef = db.collection("users").document(userstore!!.email)
+        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                // if no longer in this activity the listener exits
+                Log.w(TAG, "listen:error", firebaseFirestoreException)
+            }
+            //update user object from snapshot
+            userstore= documentSnapshot?.toObject(User::class.java)
+            // update the views based on the kind of the change happened.
 
-        username.text = userstore?.username
-        userEmail.text = userstore?.email
-        goldView.text = userstore?.gold.toString().split(".")[0]
-        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
-        penyView.text = userstore?.mypenys.toString().split(".")[0]
-        quidView.text = userstore?.myquids.toString().split(".")[0]
-        shilView.text = userstore?.myshils.toString().split(".")[0]
+        }
     }
 
     override fun onBackPressed() {

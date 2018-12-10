@@ -19,13 +19,10 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.ilpcoursework.coinz.*
 import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.House
 import com.ilpcoursework.coinz.DAO.User
-import com.ilpcoursework.coinz.DownloadCompleteListener
-import com.ilpcoursework.coinz.DownloadFileTask
-import com.ilpcoursework.coinz.LoginActivity
-import com.ilpcoursework.coinz.R
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -84,14 +81,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private val house4 =House("Warmaiden's",2000.0,50.0,LatLng(55.944795,-3.190103))
     private val houseIconList = listOf<Int>(R.drawable.housewind,R.drawable.housewolf,R.drawable.housecastle,R.drawable.houseshop)
     private var houses = listOf<House>(house1,house2,house3,house4)
-    private lateinit var headerView :View
-    private lateinit var username :TextView
-    private lateinit var userEmail :TextView
-    private lateinit var goldView :TextView
-    private lateinit var dolrView :TextView
-    private lateinit var penyView :TextView
-    private lateinit var quidView :TextView
-    private lateinit var shilView :TextView
+    private var helperFunctions= HelperFunctions()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,17 +98,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
         nav_view.setNavigationItemSelectedListener(this)
         //set slidebar header info
-
-        headerView =nav_view.getHeaderView(0)
-        username=headerView.findViewById<View>(R.id.user_name)as TextView
-        userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
-        updateHeader(userstore)
-
+        helperFunctions.updateHeader(userstore,nav_view)
         //initialise mapbox
         Mapbox.getInstance(this, getString(R.string.access_token_public))
         mapView = findViewById(R.id.mapboxMapView)
@@ -374,7 +354,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 counter++
                 // for each coin calculate the distance from player's current position , mark those are within 25 meters as collected
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
-                if(distance<=250 && userstore!!.collectedcoins[counter]==0){
+                if(distance<=100 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
                     userstore!!.collectedtoday= userstore!!.collectedtoday +1
                     val id =  f.properties()?.get("id").toString()
@@ -396,7 +376,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             map?.clear()
             renderHouses()
             renderCoins(location)
-            updateHeader(userstore)
+            helperFunctions.updateHeader(userstore,nav_view)
         }
     }
 
@@ -588,18 +568,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
     }
-    /**
-     * update the values in the header of the navigation view
-     */
-    private fun updateHeader(user:User?){
-        username.text = user?.username
-        userEmail.text = user?.email
-        goldView.text = user?.gold.toString().split(".")[0]
-        dolrView.text = user?.mydolrs.toString().split(".")[0]
-        penyView.text = user?.mypenys.toString().split(".")[0]
-        quidView.text = user?.myquids.toString().split(".")[0]
-        shilView.text = user?.myshils.toString().split(".")[0]
-    }
+
     /**
      *   save currency exchange rate from the downloaded string
      */
