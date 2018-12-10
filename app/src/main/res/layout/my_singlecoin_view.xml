@@ -4,7 +4,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="10dp"
@@ -12,47 +12,45 @@
     android:baselineAligned="false">
 
 
-    <TableLayout
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="horizontal">
 
-        <TableRow
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="206dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/blue_coin" />
+
+        <TextView
+            android:id="@+id/coininfo"
+            android:layout_width="441dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/testing" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/bankingButton"
+            android:layout_width="195dp"
+            android:layout_height="wrap_content"
+            android:text="@string/save_it" />
+
+        <Button
+            android:id="@+id/giftButton"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="send gift" />
+    </LinearLayout>
 
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="20dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                app:srcCompat="@drawable/blue_coin" />
-
-            <TextView
-                android:id="@+id/coininfo"
-                android:layout_width="441dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/testing" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <Button
-                android:id="@+id/bankingButton"
-                android:layout_width="195dp"
-                android:layout_height="wrap_content"
-                android:text="@string/save_it" />
-
-            <Button
-                android:id="@+id/giftButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="send gift" />
-        </TableRow>
-
-    </TableLayout>
 </LinearLayout>

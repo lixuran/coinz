@@ -68,7 +68,7 @@ class MyAdapter(private val myDataset: MutableList<Coin>, private var userstore:
                 activity2.showSendFriendDialog(myDataset[position])
         }
         holder.bankingButton.setOnClickListener { _ ->
-            activity2.sendBank(position)
+            activity2.sendBank(myDataset[position])
 
         }
     }

@@ -132,11 +132,11 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                                 }
                     }
+                    else{
+                        username.error="username already taken"
+                    }
+                }
 
-                }
-                else{
-                    username.error="username already taken"
-                }
             }
         }
     }

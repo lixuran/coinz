@@ -8,24 +8,31 @@ import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
 
 object helperfunctions {
-    private var db = FirebaseFirestore.getInstance();
+    private var db = FirebaseFirestore.getInstance()
     private var mAuth: FirebaseAuth? = null
     private var user: FirebaseUser?=null
     init {
         mAuth = FirebaseAuth.getInstance()
 
-        user = mAuth?.getCurrentUser()
+        user = mAuth?.currentUser
     }
-    public fun updateUser(userstore : User, tag:String){
+
+    /**
+     *
+     */
+    fun updateUser(userstore : User, tag:String){
             db.collection("users")
                     .document(userstore.email).set(userstore)
                     .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " + userstore.email);
+                        Log.d(tag, "DocumentSnapshot added with ID: " + userstore.email)
 
                     }
     }
-    public fun friendReceiveUserInvite( friend:User, tag:String){
-        val docRef = db.collection("users").document(friend.email);
+    /**
+     *
+     */
+    fun friendReceiveUserInvite( friend:User, tag:String){
+        db.collection("users").document(friend.email)
 
         friend.changestate=4
         db.collection("users")
@@ -34,10 +41,12 @@ object helperfunctions {
                     Log.d(tag, "DocumentSnapshot added with ID: " +friend)
                 }
     }
-
-    fun Friendremoveuser(userstore: User, friend:String, tag:String){
-        val docRef = db.collection("users").document(friend);
-        var frienduser : User? =null
+    /**
+     *
+     */
+    fun friendRemoveUser(userstore: User, friend:String, tag:String){
+        val docRef = db.collection("users").document(friend)
+        var frienduser : User?
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
@@ -47,15 +56,18 @@ object helperfunctions {
             db.collection("users")
                     .document(friend).set(frienduser!!)
                     .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " +friend);
+                        Log.d(tag, "DocumentSnapshot added with ID: " +friend)
 
                     }
         }
 
     }
-    public fun Friendadduser(userstore: User, friend:String, tag:String){
-        val docRef = db.collection("users").document(friend);
-        var frienduser : User? =null
+    /**
+     *
+     */
+    fun friendAddUser(userstore: User, friend:String, tag:String){
+        val docRef = db.collection("users").document(friend)
+        var frienduser : User?
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
@@ -65,15 +77,18 @@ object helperfunctions {
             db.collection("users")
                     .document(friend).set(frienduser!!)
                     .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " +friend);
+                        Log.d(tag, "DocumentSnapshot added with ID: " +friend)
 
                     }
         }
 
     }
-    public fun Friendaddcoin(friendemail:String, coin: Coin, tag:String){
-        val docRef = db.collection("users").document(friendemail);
-        var frienduser : User? =null
+    /**
+     *
+     */
+    fun friendAddCoin(friendemail:String, coin: Coin, tag:String){
+        val docRef = db.collection("users").document(friendemail)
+        var frienduser: User?
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
@@ -91,12 +106,9 @@ object helperfunctions {
             db.collection("users")
                     .document(friendemail).set(frienduser!!)
                     .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " +friendemail);
+                        Log.d(tag, "DocumentSnapshot added with ID: " +friendemail)
 
                     }
         }
-
-
-
     }
 }

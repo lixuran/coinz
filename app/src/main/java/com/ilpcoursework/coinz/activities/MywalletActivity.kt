@@ -45,7 +45,14 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     private var db = FirebaseFirestore.getInstance()
     private val TAG ="mywalletactivity"
     private var namesMapping = hashMapOf("SHIL" to "frost dragon","DOLR" to "acient dragon","QUID" to "blood dragon","PENY" to " fire dragon")
-
+    private lateinit var headerView :View
+    private lateinit var username :TextView
+    private lateinit var userEmail :TextView
+    private lateinit var goldView :TextView
+    private lateinit var dolrView :TextView
+    private lateinit var penyView :TextView
+    private lateinit var quidView :TextView
+    private lateinit var shilView :TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mywallet2)
@@ -60,22 +67,15 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         toggle.syncState()
         // set navigation view header info
         nav_view.setNavigationItemSelectedListener(this)
-        val headerView =nav_view.getHeaderView(0)
-        val username=headerView.findViewById<View>(R.id.user_name)as TextView
-        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
-
-        username.text = userstore?.username
-        userEmail.text = userstore?.email
-        goldView.text = userstore?.gold.toString().split(".")[0]
-        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
-        penyView.text = userstore?.mypenys.toString().split(".")[0]
-        quidView.text = userstore?.myquids.toString().split(".")[0]
-        shilView.text = userstore?.myshils.toString().split(".")[0]
+        headerView =nav_view.getHeaderView(0)
+        username=headerView.findViewById<View>(R.id.user_name)as TextView
+        userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
+        goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
+        dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
+        penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
+        quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
+        shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
+        updateHeader(userstore)
 
         // get the coins to be shown in the recycler view
         val iterator= userstore!!.coins.iterator()
@@ -95,7 +95,6 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             adapter = viewAdapter
 
         }
-        // is this the case?
         // set realtime update listener for the friend list and invitations
         val docRef = db.collection("users").document(userstore!!.email)
         docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
@@ -121,6 +120,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                     }
                     viewAdapter.notifyItemRangeInserted(0,selectedCoins.size)
                     userstore?.changestate=0
+                    updateHeader(userstore)
                 }
             }
         }
@@ -130,10 +130,10 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      * send the coin at position in the  coins to the bank
      * @param position the position of the coin in the selected coins
      */
-    fun sendBank(position:Int){
-        val cointosent = selectedCoins.get(position)
+    fun sendBank(coin:Coin){
+        val coinindex = userstore!!.coins.map{acoin->acoin.id}.indexOf(coin.id)
         // if reached maximum saving allowance, and the coin is not a gift, do nothing
-        if(userstore!!.bankedToday>=25 && cointosent.type==0)
+        if(userstore!!.bankedToday>=25 && coin.type==0)
         {
             Toast.makeText(this, "maximum banking limit reached",
                     Toast.LENGTH_SHORT).show()
@@ -141,27 +141,55 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         //else remove the coin from the coin list and
         // calculate gold and coin sum accordingly
         else {
+            if(coin.type==0)
             userstore!!.bankedToday+=1
 
             var rate = 0.0
-            when (cointosent.currency) {
+            when (coin.currency) {
                 "SHIL" -> {rate = userstore!!.shilrate
-                    userstore!!.myshils-=cointosent.value}
+                    userstore!!.myshils-=coin.value}
                 "DOLR" -> {rate = userstore!!.dolrrate
-                    userstore!!.mydolrs-=cointosent.value}
+                    userstore!!.mydolrs-=coin.value}
                 "QUID" -> {rate = userstore!!.quidrate
-                    userstore!!.myquids-=cointosent.value}
+                    userstore!!.myquids-=coin.value}
 
                 "PENY" ->{ rate = userstore!!.penyrate
-                    userstore!!.mypenys-=cointosent.value}
+                    userstore!!.mypenys-=coin.value}
 
             }
-            val addition =cointosent.value * rate
+            val addition =coin.value * rate
             userstore!!.gold = userstore!!.gold + addition
-            userstore!!.coins.remove(cointosent)
+            userstore!!.coins.removeAt(coinindex)
             update_selected_coins()
             helperfunctions.updateUser(userstore!!, "myadapter")
+            updateHeader(userstore)
         }
+    }
+    /**
+     * show the coin info dialog for each coin , which contains
+     * the value, currency, collected date and indicator of wether it is
+     * send from a friend.
+     */
+    fun showCoinInfoDialog(coin:Coin){
+        //set up the alert dialog with dismiss button
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+        val inflater : LayoutInflater = layoutInflater
+        val view : View = inflater.inflate(R.layout.my_coininfo_dialog,null)
+        builder.setView(view)
+        builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
+        // get item views
+        val coinValue= view.findViewById<TextView>(R.id.coin_value)
+        val coinCurrency= view.findViewById<TextView>(R.id.coin_currency)
+        val coinCollectedTime= view.findViewById<TextView>(R.id.coin_collected_time)
+        val coinIsGiven= view.findViewById<TextView>(R.id.coin_gift)
+        // set text using coin info.
+        coinValue?.text= "the bone wegiht"+coin.value.toString()+"kg"
+        coinCurrency?.text= "this is a "+namesMapping[coin.currency]+" bone"
+        coinCollectedTime?.text= "the dragon bone is stored on "+coin.date
+        coinIsGiven?.text= "the dragon bone is"+if(coin.type==1) "given by friend" else "collected from map"
+        //build and show the dialog
+        val dialog = builder.create()
+        dialog.show()
     }
     /**
      *show the dialog for sending coin to a friend
@@ -169,7 +197,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun showSendFriendDialog(coin:Coin){
         // selectedcoin: the index of the coin selected in the coins user possess
-        userstore?.selectedcoin=userstore!!.coins.indexOf(coin)
+        userstore?.selectedcoin=userstore!!.coins.map { acoin->acoin.id }.indexOf(coin.id)
         // does user have friend?
         if(userstore!!.friends.size>0) {
             //set dialog with users friends in the recycler list
@@ -201,32 +229,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-    /**
-     * show the coin info dialog for each coin , which contains
-     * the value, currency, collected date and indicator of wether it is
-     * send from a friend.
-     */
-    fun showCoinInfoDialog(coin:Coin){
-        //set up the alert dialog with dismiss button
-        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-        val inflater : LayoutInflater = layoutInflater
-        val view : View = inflater.inflate(R.layout.my_coininfo_dialog,null)
-        builder.setView(view)
-        builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
-        // get item views
-        val coinValue= view.findViewById<TextView>(R.id.coin_value)
-        val coinCurrency= view.findViewById<TextView>(R.id.coin_currency)
-        val coinCollectedTime= view.findViewById<TextView>(R.id.coin_collected_time)
-        val coinIsGiven= view.findViewById<TextView>(R.id.coin_gift)
-        // set text using coin info.
-        coinValue?.text= "the bone wegiht"+coin.value.toString()+"kg"
-        coinCurrency?.text= "this is a "+namesMapping[coin.currency]+" bone"
-        coinCollectedTime?.text= "the dragon bone is stored on "+coin.date
-        coinIsGiven?.text= "the dragon bone is"+if(coin.type==1) "given by friend" else "collected from map"
-        //build and show the dialog
-        val dialog = builder.create()
-        dialog.show()
-    }
+
     /**
      * send the coin to the selected user in the user dialog
      * @param  coinIndex the index of the coin in the user's coin list
@@ -237,17 +240,37 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             val friend = userstore!!.friends.get(friendIndex)
             val coin = userstore!!.coins.get(coinIndex)
             // remove the coin from user's coins
-            userstore!!.coins.remove(coin)
+            userstore!!.coins.removeAt(coinIndex)
             userstore!!.giftToday = userstore!!.giftToday + 1
+            //updates users count of possesse coins
+            when (coin.currency) {
+                "SHIL" -> {
+                    userstore!!.myshils-=coin.value
+                }
+                "DOLR" -> {
+                    userstore!!.mydolrs-=coin.value
+                }
+                "QUID" -> {
+                    userstore!!.myquids-=coin.value
+                }
+
+                "PENY" ->{
+                    userstore!!.mypenys-=coin.value
+                }
+
+            }
             Toast.makeText(this, "coin sent",
                     Toast.LENGTH_SHORT).show()
             //upload user 's current state
             helperfunctions.updateUser(userstore!!, "FriendDialogAdapter")
             // and send it to the friend
-            helperfunctions.Friendaddcoin(friend.email, coin, "FriendDialogAdapter")
+            helperfunctions.friendAddCoin(friend.email, coin, "FriendDialogAdapter")
             //close the dialog
             dialog.dismiss()
+            // update the list of coins in the subwallet
             update_selected_coins()
+            //update the value in the header of the navigation view
+            updateHeader(userstore)
         }
         else{
             Toast.makeText(this, "can't send the gift: you have reached the upper limit today, plz try tmr",
@@ -270,7 +293,18 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
         viewAdapter.notifyItemRangeInserted(0,selectedCoins.size)
     }
-
+    /**
+     * update the values in the header of the navigation view
+     */
+    private fun updateHeader(user:User?){
+        username.text = user?.username
+        userEmail.text = user?.email
+        goldView.text = user?.gold.toString().split(".")[0]
+        dolrView.text = user?.mydolrs.toString().split(".")[0]
+        penyView.text = user?.mypenys.toString().split(".")[0]
+        quidView.text = user?.myquids.toString().split(".")[0]
+        shilView.text = user?.myshils.toString().split(".")[0]
+    }
     //----ui  functions ----
 
     override fun onBackPressed() {

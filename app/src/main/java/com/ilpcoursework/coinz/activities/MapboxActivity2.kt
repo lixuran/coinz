@@ -84,6 +84,15 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private val house4 =House("Warmaiden's",2000.0,50.0,LatLng(55.944795,-3.190103))
     private val houseIconList = listOf<Int>(R.drawable.housewind,R.drawable.housewolf,R.drawable.housecastle,R.drawable.houseshop)
     private var houses = listOf<House>(house1,house2,house3,house4)
+    private lateinit var headerView :View
+    private lateinit var username :TextView
+    private lateinit var userEmail :TextView
+    private lateinit var goldView :TextView
+    private lateinit var dolrView :TextView
+    private lateinit var penyView :TextView
+    private lateinit var quidView :TextView
+    private lateinit var shilView :TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mapbox2)
@@ -100,22 +109,16 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         nav_view.setNavigationItemSelectedListener(this)
         //set slidebar header info
 
-        val headerView =nav_view.getHeaderView(0)
-        val username=headerView.findViewById<View>(R.id.user_name)as TextView
-        val userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
-        val goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
-        val dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
-        val penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
-        val quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
-        val shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
+        headerView =nav_view.getHeaderView(0)
+        username=headerView.findViewById<View>(R.id.user_name)as TextView
+        userEmail=headerView.findViewById<View>(R.id.user_email)as TextView
+        goldView=headerView.findViewById<View>(R.id.gold_view)as TextView
+        dolrView=headerView.findViewById<View>(R.id.dolr_view)as TextView
+        penyView=headerView.findViewById<View>(R.id.peny_view)as TextView
+        quidView=headerView.findViewById<View>(R.id.quid_view)as TextView
+        shilView=headerView.findViewById<View>(R.id.shil_view)as TextView
+        updateHeader(userstore)
 
-        username.text = userstore?.username
-        userEmail.text = userstore?.email
-        goldView.text = userstore?.gold.toString().split(".")[0]
-        dolrView.text = userstore?.mydolrs.toString().split(".")[0]
-        penyView.text = userstore?.mypenys.toString().split(".")[0]
-        quidView.text = userstore?.myquids.toString().split(".")[0]
-        shilView.text = userstore?.myshils.toString().split(".")[0]
         //initialise mapbox
         Mapbox.getInstance(this, getString(R.string.access_token_public))
         mapView = findViewById(R.id.mapboxMapView)
@@ -123,7 +126,18 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         mAuth = FirebaseAuth.getInstance()
         user = mAuth?.getCurrentUser()
         mapView?.getMapAsync(this)
+        //set realtime listener for update.
+        val docRef = db.collection("users").document(userstore!!.email)
+        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                // if no longer in this activity the listener exits
+                Log.w(tag, "listen:error", firebaseFirestoreException)
+            }
+            //update user object from snapshot
+            userstore= documentSnapshot?.toObject(User::class.java)
+            // update the views based on the kind of the change happened.
 
+        }
     }
 
     @SuppressWarnings("MissingPermission")
@@ -360,7 +374,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 counter++
                 // for each coin calculate the distance from player's current position , mark those are within 25 meters as collected
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
-                if(distance<=25 && userstore!!.collectedcoins[counter]==0){
+                if(distance<=250 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
                     userstore!!.collectedtoday= userstore!!.collectedtoday +1
                     val id =  f.properties()?.get("id").toString()
@@ -382,6 +396,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             map?.clear()
             renderHouses()
             renderCoins(location)
+            updateHeader(userstore)
         }
     }
 
@@ -501,7 +516,8 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             // user can collect the profit if only he is close enough to the property
             if (originLocation!= null) {
                 val  distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(houses[position].latlng)
-                if (userstore!!.housescollected[position] == 0 && distance<100 ) {
+                if (userstore!!.housescollected[position] == 0) {
+                    if( distance<100 ){
                     buyButton?.text = "collect profit"
                     buyButton.setOnClickListener { _ ->
                         userstore!!.housescollected.set(position, 1)
@@ -510,9 +526,13 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                                 Toast.LENGTH_SHORT).show()
                         buyButton.visibility = View.GONE
                     }
-                }
+                    }
+                    else{
+                        buyButton?.text = "get closer to collect profit"
+                    }
+                    }
                 else{
-                    buyButton?.text = "get closer to collect profit"
+                    buyButton?.text = "you have collected your share today"
                 }
             }
             else{
@@ -568,7 +588,18 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
     }
-
+    /**
+     * update the values in the header of the navigation view
+     */
+    private fun updateHeader(user:User?){
+        username.text = user?.username
+        userEmail.text = user?.email
+        goldView.text = user?.gold.toString().split(".")[0]
+        dolrView.text = user?.mydolrs.toString().split(".")[0]
+        penyView.text = user?.mypenys.toString().split(".")[0]
+        quidView.text = user?.myquids.toString().split(".")[0]
+        shilView.text = user?.myshils.toString().split(".")[0]
+    }
     /**
      *   save currency exchange rate from the downloaded string
      */

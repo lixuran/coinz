@@ -150,6 +150,10 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                 Toast.makeText(this, "invalid username: already in friend list",
                         Toast.LENGTH_SHORT).show()
             }
+            if(userstore!!.pendingfriends.map { friend -> friend.username }.contains(usernameStr)) {
+                Toast.makeText(this, "player has already sent you an invitation, accept it to become friends",
+                        Toast.LENGTH_SHORT).show()
+            }
             else if(usernameStr==userstore!!.username ){
                 Toast.makeText(this, "invalid username:player can't add himself ",
                         Toast.LENGTH_SHORT).show()
@@ -191,7 +195,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun deleteFriend(position:Int) {
         //delete friend from friend list and delete user from the friend's friend list
-        helperfunctions.Friendremoveuser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter")
+        helperfunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter")
         userstore!!.friends.removeAt(position)
         helperfunctions.updateUser(userstore!!, "FriendAdapter")
         //notify the adapter
@@ -224,7 +228,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     fun acceptFriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
         //add user to the friend's friend list
-        helperfunctions.Friendadduser(userstore!!, friend.email, "PendingFriendAdapter")
+        helperfunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter")
         // add friend to user's friend list and remove from invitations
         userstore!!.pendingfriends.removeAt(position)
         userstore!!.friends.add(0,friend)
