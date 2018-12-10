@@ -81,7 +81,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private val house4 =House("Warmaiden's",2000.0,50.0,LatLng(55.944795,-3.190103))
     private val houseIconList = listOf<Int>(R.drawable.housewind,R.drawable.housewolf,R.drawable.housecastle,R.drawable.houseshop)
     private var houses = listOf<House>(house1,house2,house3,house4)
-    private var helperFunctions= HelperFunctions()
+    private var helperFunctions= HelperFunctions(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,18 +106,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         mAuth = FirebaseAuth.getInstance()
         user = mAuth?.getCurrentUser()
         mapView?.getMapAsync(this)
-        //set realtime listener for update.
-        val docRef = db.collection("users").document(userstore!!.email)
-        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
-            if (firebaseFirestoreException != null) {
-                // if no longer in this activity the listener exits
-                Log.w(tag, "listen:error", firebaseFirestoreException)
-            }
-            //update user object from snapshot
-            userstore= documentSnapshot?.toObject(User::class.java)
-            // update the views based on the kind of the change happened.
 
-        }
     }
 
     @SuppressWarnings("MissingPermission")

@@ -1,22 +1,27 @@
 package com.ilpcoursework.coinz
 
+import android.content.Context
 import android.support.design.widget.NavigationView
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.Coin
 import com.ilpcoursework.coinz.DAO.User
+import com.ilpcoursework.coinz.activities.MywalletActivity
 
-class HelperFunctions {
+class HelperFunctions (context: Context){
     private var db = FirebaseFirestore.getInstance()
     private var mAuth: FirebaseAuth? = null
     private var user: FirebaseUser?=null
+    private var context:Context?=null
+    private val internetdownPrompt = "can't not access databse, plz check your internet connection"
     init {
         mAuth = FirebaseAuth.getInstance()
-
+        this.context=context
         user = mAuth?.currentUser
     }
 
@@ -25,18 +30,35 @@ class HelperFunctions {
      *  @param userstore the local user object
      */
     fun updateUser(userstore : User, tag:String){
-            db.collection("users")
+
+        db.collection("users")
                     .document(userstore.email).set(userstore)
                     .addOnSuccessListener {
                         Log.d(tag, "DocumentSnapshot added with ID: " + userstore.email)
 
+                    }.addOnFailureListener {
+                        tryUpdateAgain(userstore,tag)
                     }
+
+    }
+    fun tryUpdateAgain(userstore : User, tag:String){
+
+        db.collection("users")
+                .document(userstore.email).set(userstore)
+                .addOnSuccessListener {
+                    Log.d(tag, "DocumentSnapshot added with ID: " + userstore.email)
+
+                }.addOnFailureListener {
+                    Toast.makeText(context, internetdownPrompt,
+                            Toast.LENGTH_LONG).show()
+                }
+
     }
     /**
      *  update the friends pending invitations after user send an invite
      *  @param friend the user's friend object, downloaded previously.
      */
-    fun friendReceiveUserInvite( friend:User, tag:String){
+    fun friendReceiveUserInvite( friend:User, tag:String,time:Int){
         db.collection("users").document(friend.email)
         // set changestate to indicate the operation down.
 
@@ -45,13 +67,22 @@ class HelperFunctions {
                 .document(friend.email).set(friend)
                 .addOnSuccessListener {
                     Log.d(tag, "DocumentSnapshot added with ID: " +friend)
+                }.addOnFailureListener {
+                    if(time>0)
+                    {
+                        friendReceiveUserInvite( friend, tag,time-1)
+                    }
+                    else{
+                        Toast.makeText(context, internetdownPrompt,
+                                Toast.LENGTH_LONG).show()
+                    }
                 }
     }
     /**
      *  remove player from the the selected friend's friend list after player delete his friend
      *  @param friend friend 's email. used to download his document
      */
-    fun friendRemoveUser(userstore: User, friend:String, tag:String){
+    fun friendRemoveUser(userstore: User, friend:String, tag:String,time:Int){
         val docRef = db.collection("users").document(friend)
         var frienduser : User?
         docRef.get().addOnSuccessListener {
@@ -68,14 +99,32 @@ class HelperFunctions {
                     .addOnSuccessListener {
                         Log.d(tag, "DocumentSnapshot added with ID: " +friend)
 
+                    }.addOnFailureListener {
+                        if(time>0)
+                        {
+                            friendRemoveUser( userstore,friend, tag,time-1)
+                        }
+                        else{
+                            Toast.makeText(context, internetdownPrompt,
+                                    Toast.LENGTH_LONG).show()
+                        }
                     }
+        }.addOnFailureListener {
+            if(time>0)
+            {
+                friendRemoveUser( userstore,friend, tag,time-1)
+            }
+            else{
+                Toast.makeText(context, internetdownPrompt,
+                        Toast.LENGTH_LONG).show()
+            }
         }
     }
     /**
      *  add player to his friend's friend list, after user accept the invitation
      *   @param friend friend 's email. used to download his document
      */
-    fun friendAddUser(userstore: User, friend:String, tag:String){
+    fun friendAddUser(userstore: User, friend:String, tag:String,time:Int){
         val docRef = db.collection("users").document(friend)
         var frienduser : User?
         docRef.get().addOnSuccessListener {
@@ -91,7 +140,25 @@ class HelperFunctions {
                     .addOnSuccessListener {
                         Log.d(tag, "DocumentSnapshot added with ID: " +friend)
 
+                    }.addOnFailureListener {
+                        if(time>0)
+                        {
+                            friendAddUser( userstore,friend, tag,time-1)
+                        }
+                        else{
+                            Toast.makeText(context, internetdownPrompt,
+                                    Toast.LENGTH_LONG).show()
+                        }
                     }
+        }.addOnFailureListener {
+            if(time>0)
+            {
+                friendAddUser( userstore,friend, tag,time-1)
+            }
+            else{
+                Toast.makeText(context, internetdownPrompt,
+                        Toast.LENGTH_LONG).show()
+            }
         }
 
     }
@@ -100,7 +167,7 @@ class HelperFunctions {
      *   @param friendemail  friend 's email. used to download his document
      *   @param coin the coin to send
      */
-    fun friendAddCoin(friendemail:String, coin: Coin, tag:String){
+    fun friendAddCoin(friendemail:String, coin: Coin, tag:String,time:Int,activity: MywalletActivity){
         val docRef = db.collection("users").document(friendemail)
         var frienduser: User?
         docRef.get().addOnSuccessListener {
@@ -114,7 +181,6 @@ class HelperFunctions {
                 "DOLR" -> {frienduser?.mydolrs =  frienduser?.mydolrs!!+coin.value }
                 "QUID" -> {frienduser?.myquids =  frienduser?.myquids!!+coin.value }
                 "PENY" ->{ frienduser?.mypenys =  frienduser?.mypenys!!+coin.value }
-
             }
             // set changestate to indicate the operation down.
             frienduser?.changestate=3
@@ -124,7 +190,28 @@ class HelperFunctions {
                     .addOnSuccessListener {
                         Log.d(tag, "DocumentSnapshot added with ID: " +friendemail)
 
+                    }.addOnFailureListener {
+                        if(time>0)
+                        {
+                            friendAddCoin( friendemail,coin, tag,time-1,activity)
+                        }
+                        else{
+                            Toast.makeText(context, internetdownPrompt,
+                                    Toast.LENGTH_LONG).show()
+                            //sending failed, try to return to the original state.
+                            activity.addPlayerCoin(coin)
+                        }
                     }
+        }.addOnFailureListener {
+            if(time>0)
+            {
+                friendAddCoin( friendemail,coin, tag,time-1,activity)
+            }
+            else{
+                Toast.makeText(context, internetdownPrompt,
+                        Toast.LENGTH_LONG).show()
+                activity.addPlayerCoin(coin)
+            }
         }
     }
     /**

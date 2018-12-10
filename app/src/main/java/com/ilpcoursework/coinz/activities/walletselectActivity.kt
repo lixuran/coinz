@@ -6,7 +6,6 @@ import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.MenuItem
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
@@ -22,7 +21,7 @@ import kotlinx.android.synthetic.main.content_walletselect.*
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
-    private var helperFunctions= HelperFunctions()
+    private var helperFunctions= HelperFunctions(this)
     private var db = FirebaseFirestore.getInstance()
     private val TAG ="wallectselect"
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,18 +74,7 @@ class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         //initialise the slidebar header using information from the userstore
         nav_view.setNavigationItemSelectedListener(this)
         helperFunctions.updateHeader(userstore,nav_view)
-        //set realtime listener for update.
-        val docRef = db.collection("users").document(userstore!!.email)
-        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
-            if (firebaseFirestoreException != null) {
-                // if no longer in this activity the listener exits
-                Log.w(TAG, "listen:error", firebaseFirestoreException)
-            }
-            //update user object from snapshot
-            userstore= documentSnapshot?.toObject(User::class.java)
-            // update the views based on the kind of the change happened.
 
-        }
     }
 
     override fun onBackPressed() {

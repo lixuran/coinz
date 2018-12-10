@@ -45,6 +45,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     private val tag = "LoginActivity"
     private var db = FirebaseFirestore.getInstance()
     private var userstore: User?=null
+    private var isFirstAttempt :Int =2 // used to debug imternet connection
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -95,6 +96,16 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
 
+            }.addOnFailureListener{
+                if (isFirstAttempt>0){
+                    isFirstAttempt-=1
+                    updateUI(user)
+                }
+                else{
+                    Log.w(tag, "login failure: internet down")
+                    Toast.makeText(this, "can't not access databse, plz check your internet connection",
+                            Toast.LENGTH_LONG).show()
+                }
             }
         }
 

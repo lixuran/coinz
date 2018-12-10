@@ -45,7 +45,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     private var db = FirebaseFirestore.getInstance()
     private val TAG ="mywalletactivity"
     private var namesMapping = hashMapOf("SHIL" to "frost dragon","DOLR" to "acient dragon","QUID" to "blood dragon","PENY" to " fire dragon")
-    private var helperFunctions= HelperFunctions()
+    private var helperFunctions= HelperFunctions(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -250,7 +250,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             //upload user 's current state
             helperFunctions.updateUser(userstore!!, "FriendDialogAdapter")
             // and send it to the friend
-            helperFunctions.friendAddCoin(friend.email, coin, "FriendDialogAdapter")
+            helperFunctions.friendAddCoin(friend.email, coin, "FriendDialogAdapter",2,this)
             //close the dialog
             dialog.dismiss()
             // update the list of coins in the subwallet
@@ -280,6 +280,34 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         viewAdapter.notifyItemRangeInserted(0,selectedCoins.size)
     }
 
+    /**
+     *  send coin has failed. process to add the coin back to user's account.
+     */
+    fun addPlayerCoin(coin :Coin){
+        userstore!!.coins.add(0,coin)
+        userstore!!.giftToday = userstore!!.giftToday - 1
+        //updates users count of possesse coins
+        when (coin.currency) {
+            "SHIL" -> {
+                userstore!!.myshils+=coin.value
+            }
+            "DOLR" -> {
+                userstore!!.mydolrs+=coin.value
+            }
+            "QUID" -> {
+                userstore!!.myquids+=coin.value
+            }
+
+            "PENY" ->{
+                userstore!!.mypenys+=coin.value
+            }
+
+        }
+        // update the list of coins in the subwallet
+        update_selected_coins()
+        //update the value in the header of the navigation view
+        helperFunctions.updateHeader(userstore,nav_view)
+    }
     //----ui  functions ----
 
     override fun onBackPressed() {

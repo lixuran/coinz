@@ -8,7 +8,6 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -26,7 +25,7 @@ import kotlinx.android.synthetic.main.app_bar_profile.*
 // the activity to show the user's current profile
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
-    private var helperFunctions= HelperFunctions()
+    private var helperFunctions= HelperFunctions(this)
     private var db = FirebaseFirestore.getInstance()
     private var TAG="profile activity"
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,18 +66,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
-        //set realtime listener for update.
-        val docRef = db.collection("users").document(userstore!!.email)
-        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
-            if (firebaseFirestoreException != null) {
-                // if no longer in this activity the listener exits
-                Log.w(TAG, "listen:error", firebaseFirestoreException)
-            }
-            //update user object from snapshot
-            userstore= documentSnapshot?.toObject(User::class.java)
-            // update the views based on the kind of the change happened.
 
-        }
     }
 
     @SuppressLint("InflateParams")

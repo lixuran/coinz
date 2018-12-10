@@ -38,7 +38,7 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     private var mAuth: FirebaseAuth? = null
     private val tag = "SignupActivity"
     private var db = FirebaseFirestore.getInstance()
-
+    private var isFirstAttempt :Int =2 // used to debug imternet connection
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup2)
@@ -50,7 +50,8 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         //set button listener
         email_sign_in_button.setOnClickListener { switchToSignin() }
         sign_up_button.setOnClickListener{ _ -> signup()}
-
+        //set first attempt to true
+        isFirstAttempt=1
     }
 
     private fun switchToSignin() {
@@ -132,11 +133,23 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                                 }
                     }
+                    // username exist in the database,
                     else{
+
                         username.error="username already taken"
                     }
                 }
-
+                //can't access  the datbabase, attempt to retry
+                else if (isFirstAttempt>0){
+                    isFirstAttempt-=1
+                    signup()
+                }
+                // retry continues to fail.
+                else{
+                    Log.w(tag, "createUserWithEmail:failure internet down")
+                    Toast.makeText(this, "can't not access databse, plz check your internet connection",
+                            Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

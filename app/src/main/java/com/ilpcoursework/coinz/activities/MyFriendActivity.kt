@@ -39,7 +39,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     private var db = FirebaseFirestore.getInstance()
     private val TAG ="myfriendactivity"
     private lateinit var friendlist :MutableList<friend>
-    private var helperFunctions= HelperFunctions()
+    private var helperFunctions= HelperFunctions(this)
 
     private lateinit var pendingfriendlist :MutableList<friend>
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,7 +156,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                             val friend = task.getResult()!!.documents.get(0).toObject(User::class.java)
                             if (!friend!!.pendingfriends.map { afriend -> afriend.email }.contains(userstore!!.email)) {
                                 friend.pendingfriends.add(0, friend(userstore!!.username, userstore!!.email))
-                                helperFunctions.friendReceiveUserInvite(friend, "friend invite")
+                                helperFunctions.friendReceiveUserInvite(friend, "friend invite",2)
                             }
                             Toast.makeText(this, "invitation sent",
                                     Toast.LENGTH_SHORT).show()
@@ -180,7 +180,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun deleteFriend(position:Int) {
         //delete friend from friend list and delete user from the friend's friend list
-        helperFunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter")
+        helperFunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter",2)
         userstore!!.friends.removeAt(position)
         helperFunctions.updateUser(userstore!!, "FriendAdapter")
         //notify the adapter
@@ -213,7 +213,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     fun acceptFriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
         //add user to the friend's friend list
-        helperFunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter")
+        helperFunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter",2)
         // add friend to user's friend list and remove from invitations
         userstore!!.pendingfriends.removeAt(position)
         userstore!!.friends.add(0,friend)
