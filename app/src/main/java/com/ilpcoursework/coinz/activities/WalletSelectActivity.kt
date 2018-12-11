@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.HelperFunctions
 import com.ilpcoursework.coinz.LoginActivity
@@ -19,11 +18,9 @@ import kotlinx.android.synthetic.main.app_bar_walletselect.*
 import kotlinx.android.synthetic.main.content_walletselect.*
 
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class WalletSelectActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
     private var helperFunctions= HelperFunctions(this)
-    private var db = FirebaseFirestore.getInstance()
-    private val TAG ="wallectselect"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_walletselect)
@@ -96,7 +93,7 @@ class walletselectActivity : AppCompatActivity(), NavigationView.OnNavigationIte
                 startActivity(intent)
             }
             R.id.myinventory -> {
-                val intent = Intent(this, walletselectActivity::class.java)
+                val intent = Intent(this, WalletSelectActivity::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
             }

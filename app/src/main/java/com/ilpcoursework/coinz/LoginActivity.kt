@@ -46,6 +46,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     private var db = FirebaseFirestore.getInstance()
     private var userstore: User?=null
     private var isFirstAttempt :Int =2 // used to debug imternet connection
+    private var allowAutoLogin = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -68,6 +69,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         super.onStart()
         //auto signin
         // Check if user is signed in (nonnull) and update UI
+        if(allowAutoLogin)
         updateUI(mAuth?.currentUser)
     }
 

@@ -41,7 +41,7 @@
             android:label="@string/title_activity_signup2" />
         <activity android:name=".activities.WelcomingActivity" />
         <activity
-            android:name=".activities.walletselectActivity"
+            android:name=".activities.WalletSelectActivity"
             android:label="@string/title_activity_walletselect"
             android:theme="@style/AppTheme" />
         <activity

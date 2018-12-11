@@ -101,7 +101,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 startActivity(intent)
             }
             R.id.myinventory -> {
-                val intent = Intent(this, walletselectActivity::class.java)
+                val intent = Intent(this, WalletSelectActivity::class.java)
                 intent.putExtra("useridentity", userstore)
                 startActivity(intent)
             }

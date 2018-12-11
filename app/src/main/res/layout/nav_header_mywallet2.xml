@@ -42,25 +42,25 @@
             app:layout_constraintTop_toBottomOf="@+id/user_name" />
 
         <ImageView
-            android:id="@+id/imageView4"
+            android:id="@+id/navhead_bluecoinimgView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/imageView7"
+            app:layout_constraintBottom_toTopOf="@+id/navhead_redcoinimgView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/bluecoin" />
 
         <ImageView
-            android:id="@+id/imageView5"
+            android:id="@+id/navhead_goldimgView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/imageView8"
+            app:layout_constraintBottom_toTopOf="@+id/navhead_yellowcoinimgView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -68,7 +68,7 @@
             app:srcCompat="@drawable/gold" />
 
         <ImageView
-            android:id="@+id/imageView6"
+            android:id="@+id/navhead_greencoinimgView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -79,23 +79,23 @@
             app:srcCompat="@drawable/greencoin" />
 
         <ImageView
-            android:id="@+id/imageView7"
+            android:id="@+id/navhead_redcoinimgView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/imageView6"
+            app:layout_constraintBottom_toTopOf="@+id/navhead_greencoinimgView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/redcoin" />
 
         <ImageView
-            android:id="@+id/imageView8"
+            android:id="@+id/navhead_yellowcoinimgView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/imageView4"
+            app:layout_constraintBottom_toTopOf="@+id/navhead_bluecoinimgView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/yellowcoin" />

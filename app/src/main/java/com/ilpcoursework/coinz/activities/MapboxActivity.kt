@@ -108,7 +108,7 @@ class MapboxActivity : AppCompatActivity(), OnMapReadyCallback,PermissionsListen
         }
 
         mywallet_button.setOnClickListener { view ->
-            val intent = Intent(this, walletselectActivity::class.java)
+            val intent = Intent(this, WalletSelectActivity::class.java)
             intent.putExtra("useridentity", userstore)
             startActivity(intent)
         }
