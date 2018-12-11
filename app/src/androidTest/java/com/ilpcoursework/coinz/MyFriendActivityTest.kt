@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
-class FriendActivityTest {
+class MyFriendActivityTest {
 
     @Rule
     @JvmField
@@ -324,7 +324,7 @@ class FriendActivityTest {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
-        Thread.sleep(7000)
+        Thread.sleep(15000)
 
         val appCompatImageButton4 = onView(
                 allOf(withContentDescription("Open navigation drawer"),
@@ -337,16 +337,7 @@ class FriendActivityTest {
                         isDisplayed()))
         appCompatImageButton4.perform(click())
 
-        val appCompatImageButton5 = onView(
-                allOf(withContentDescription("Open navigation drawer"),
-                        childAtPosition(
-                                allOf(withId(R.id.toolbar),
-                                        childAtPosition(
-                                                withClassName(`is`("android.support.design.widget.AppBarLayout")),
-                                                0)),
-                                1),
-                        isDisplayed()))
-        appCompatImageButton5.perform(click())
+
 
         val navigationMenuItemView4 = onView(
                 withText("companions"))
