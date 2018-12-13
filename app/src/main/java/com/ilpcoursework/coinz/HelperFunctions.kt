@@ -89,11 +89,13 @@ class HelperFunctions (context: Context){
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
             //find user from friend's friend list
-            val index =frienduser!!.friends.map { friend -> friend.email }.indexOf(userstore.email)
-            // and remove
-            frienduser!!.friends.removeAt(index)
-            // set changestate to indicate the operation down.
-            frienduser?.changestate=1
+            if(frienduser!!.friends.map { friend -> friend.email }.contains(userstore.email)) {
+                val index = frienduser!!.friends.map { friend -> friend.email }.indexOf(userstore.email)
+                // and remove if user if found in the friend list
+                frienduser!!.friends.removeAt(index)
+                // set changestate to indicate the operation down.
+                frienduser?.changestate = 1
+            }
             db.collection("users")
                     .document(friend).set(frienduser!!)
                     .addOnSuccessListener {
@@ -131,25 +133,27 @@ class HelperFunctions (context: Context){
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
             //friend add user to friend list
-            frienduser?.friends?.add(0, com.ilpcoursework.coinz.DAO.friend(userstore.username, userstore.email))
-            // set changestate to indicate the operation down.
-            frienduser?.changestate=2
+            if(frienduser!=null) {
+                if (!frienduser!!.friends.map { afriend -> afriend.email }.contains(userstore.email)) {
+                    frienduser?.friends?.add(0, com.ilpcoursework.coinz.DAO.friend(userstore.username, userstore.email))
 
-            db.collection("users")
-                    .document(friend).set(frienduser!!)
-                    .addOnSuccessListener {
-                        Log.d(tag, "DocumentSnapshot added with ID: " +friend)
+                    // set changestate to indicate the operation down.
+                    frienduser?.changestate = 2
+                }
+                db.collection("users")
+                        .document(friend).set(frienduser!!)
+                        .addOnSuccessListener {
+                            Log.d(tag, "DocumentSnapshot added with ID: " + friend)
 
-                    }.addOnFailureListener {
-                        if(time>0)
-                        {
-                            friendAddUser( userstore,friend, tag,time-1)
+                        }.addOnFailureListener {
+                            if (time > 0) {
+                                friendAddUser(userstore, friend, tag, time - 1)
+                            } else {
+                                Toast.makeText(context, internetdownPrompt,
+                                        Toast.LENGTH_LONG).show()
+                            }
                         }
-                        else{
-                            Toast.makeText(context, internetdownPrompt,
-                                    Toast.LENGTH_LONG).show()
-                        }
-                    }
+            }
         }.addOnFailureListener {
             if(time>0)
             {
@@ -160,6 +164,7 @@ class HelperFunctions (context: Context){
                         Toast.LENGTH_LONG).show()
             }
         }
+
 
     }
     /**

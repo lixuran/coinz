@@ -83,7 +83,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
         }
 
-        // set realtime update listener for the friend list and invitations
+        // set realtime update listener to receive changes in the friend list and invitations
         val docRef = db.collection("users").document(userstore!!.email)
         docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
             if (firebaseFirestoreException != null) {
@@ -130,15 +130,18 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         //set the listener for user adding friend
         addfriend_button.setOnClickListener { _ ->
             val usernameStr=username.text.toString()
-            //if player request for adding a friend who s in the friend list, or try to add himself
+            //if player request for adding a friend who s in the friend list
             if(userstore!!.friends.map { friend -> friend.username }.contains(usernameStr)) {
                 Toast.makeText(this, "invalid username: already in friend list",
                         Toast.LENGTH_SHORT).show()
             }
-            if(userstore!!.pendingfriends.map { friend -> friend.username }.contains(usernameStr)) {
+            // if the player has already been sent an invite from the person who he want to send invite to ,
+            // notify that such action can't be done
+            else if(userstore!!.pendingfriends.map { friend -> friend.username }.contains(usernameStr)) {
                 Toast.makeText(this, "player has already sent you an invitation, accept it to become friends",
                         Toast.LENGTH_SHORT).show()
             }
+            // if the player try to add himself
             else if(usernameStr==userstore!!.username ){
                 Toast.makeText(this, "invalid username:player can't add himself ",
                         Toast.LENGTH_SHORT).show()
@@ -152,11 +155,14 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                             Toast.makeText(this, "invalid username: no player found",
                                     Toast.LENGTH_SHORT).show()
                         } else if (task.getResult()?.size() == 1) {
-                            // send a invitation to the target player
+                            // send a invitation to the target player if the target player has not received an invite from
+                            // the current player , or has current player as his friend.
                             val friend = task.getResult()!!.documents.get(0).toObject(User::class.java)
                             if (!friend!!.pendingfriends.map { afriend -> afriend.email }.contains(userstore!!.email)) {
-                                friend.pendingfriends.add(0, friend(userstore!!.username, userstore!!.email))
-                                helperFunctions.friendReceiveUserInvite(friend, "friend invite",2)
+                                if(!friend.friends.map { afriend -> afriend.email }.contains(userstore!!.email)){
+                                    friend.pendingfriends.add(0, friend(userstore!!.username, userstore!!.email))
+                                    helperFunctions.friendReceiveUserInvite(friend, "friend invite",2)
+                                }
                             }
                             Toast.makeText(this, "invitation sent",
                                     Toast.LENGTH_SHORT).show()
@@ -170,8 +176,6 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                 }
             }
         }
-
-
     }
 
     /**
@@ -180,15 +184,16 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun deleteFriend(position:Int) {
         //delete friend from friend list and delete user from the friend's friend list
-        helperFunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter",2)
-        userstore!!.friends.removeAt(position)
+        if(userstore!!.friends.size>position) {
+            helperFunctions.friendRemoveUser(userstore!!, userstore!!.friends.get(position).email, "FriendAdapter", 2)
+            userstore!!.friends.removeAt(position)
+        }
         helperFunctions.updateUser(userstore!!, "FriendAdapter")
         //notify the adapter
         friendlist.clear()
         friendViewAdapter.notifyDataSetChanged()
         friendlist.addAll(userstore!!.friends)
         friendViewAdapter.notifyItemRangeInserted(0,friendlist.size)
-
     }
 
     /**
@@ -197,6 +202,7 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun refuseFriend(position:Int) {
         //remove from invitations
+        if(userstore!!.pendingfriends.size>position)
         userstore!!.pendingfriends.removeAt(position)
         helperFunctions.updateUser(userstore!!, "PendingFriendAdapter")
         //notify the adapter
@@ -212,22 +218,28 @@ class MyFriendActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
      */
     fun acceptFriend(position:Int) {
         val friend = userstore!!.pendingfriends.get(position)
-        //add user to the friend's friend list
-        helperFunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter",2)
-        // add friend to user's friend list and remove from invitations
-        userstore!!.pendingfriends.removeAt(position)
-        userstore!!.friends.add(0,friend)
-        helperFunctions.updateUser(userstore!!, "PendingFriendAdapter")
-        //notify the adapter
-        pendingfriendlist.clear()
-        pendingfriendViewAdapter.notifyDataSetChanged()
-        pendingfriendlist.addAll(userstore!!.pendingfriends)
-        pendingfriendViewAdapter.notifyItemRangeInserted(0,pendingfriendlist.size)
 
-        friendlist.clear()
-        friendViewAdapter.notifyDataSetChanged()
-        friendlist.addAll(userstore!!.friends)
-        friendViewAdapter.notifyItemRangeInserted(0,friendlist.size)
+            //add user to the friend's friend list
+            helperFunctions.friendAddUser(userstore!!, friend.email, "PendingFriendAdapter", 2)
+            if (userstore!!.pendingfriends.size > position) {
+                // add friend to user's friend list and remove from invitations
+                userstore!!.pendingfriends.removeAt(position)
+                //if the friend is not already in the user's friend list
+                if(!userstore!!.friends.map { afriend -> afriend.email }.contains(friend.email)) {
+                    userstore!!.friends.add(0, friend)
+                }
+            }
+            helperFunctions.updateUser(userstore!!, "PendingFriendAdapter")
+            //notify the adapter
+            pendingfriendlist.clear()
+            pendingfriendViewAdapter.notifyDataSetChanged()
+            pendingfriendlist.addAll(userstore!!.pendingfriends)
+            pendingfriendViewAdapter.notifyItemRangeInserted(0, pendingfriendlist.size)
+
+            friendlist.clear()
+            friendViewAdapter.notifyDataSetChanged()
+            friendlist.addAll(userstore!!.friends)
+            friendViewAdapter.notifyItemRangeInserted(0, friendlist.size)
 
     }
 
