@@ -30,6 +30,7 @@ import kotlinx.android.synthetic.main.activity_mywallet2.*
 import kotlinx.android.synthetic.main.app_bar_mywallet2.*
 
 
+@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 // the activity to store coins to bank and send coins to other users
 class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var recyclerView: RecyclerView    // the recycler view to show the coins of a perticular type
@@ -93,7 +94,7 @@ class MywalletActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             // update the views based on the kind of the change happened.
             when {
 
-                userstore?.changestate==4 -> {
+                userstore?.changestate==3 -> {
                     selectedCoins.clear()
                     viewAdapter.notifyDataSetChanged()
                     val coinIterator= userstore!!.coins.iterator()

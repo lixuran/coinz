@@ -14,7 +14,6 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.ilpcoursework.coinz.DAO.User
 import com.ilpcoursework.coinz.HelperFunctions
 import com.ilpcoursework.coinz.LoginActivity
@@ -26,8 +25,6 @@ import kotlinx.android.synthetic.main.app_bar_profile.*
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private var userstore: User?=null
     private var helperFunctions= HelperFunctions(this)
-    private var db = FirebaseFirestore.getInstance()
-    private var TAG="profile activity"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
@@ -55,13 +52,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
 
         //set listeners
-        val contract_button =findViewById<View>(R.id.contract_button) as Button
-        contract_button.setOnClickListener{ _->
+        val contractButton =findViewById<View>(R.id.contract_button) as Button
+        contractButton.setOnClickListener{ _->
             showDialog()
 
         }
-        val signout_button =findViewById<View>(R.id.signout_button) as Button
-        signout_button.setOnClickListener { _ ->
+        val signoutButton =findViewById<View>(R.id.signout_button) as Button
+        signoutButton.setOnClickListener { _ ->
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -76,7 +73,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         val inflater : LayoutInflater = layoutInflater
         val view : View = inflater.inflate(R.layout.my_help_dialog,null)
         builder.setView(view)
-        builder.setPositiveButton("close") { dialog, which -> dialog!!.dismiss() }
+        builder.setPositiveButton("close") { dialog, _ -> dialog!!.dismiss() }
         val dialog = builder.create()
         dialog.show()
     }
@@ -116,7 +113,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 startActivity(intent)
             }
             R.id.signout -> {
-                FirebaseAuth.getInstance().signOut();
+                FirebaseAuth.getInstance().signOut()
                 val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
             }

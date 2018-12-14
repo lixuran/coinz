@@ -26,36 +26,36 @@ class WalletSelectActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         setContentView(R.layout.activity_walletselect)
         setSupportActionBar(toolbar)
         userstore = intent.extras["useridentity"] as? User
-        val bluetext: TextView = findViewById(R.id.bluerate) as TextView
-        val redtext: TextView = findViewById(R.id.redrate) as TextView
-        val greentext: TextView = findViewById(R.id.greenrate) as TextView
-        val yellowtext: TextView = findViewById(R.id.yellowrate) as TextView
+        val blueText: TextView = findViewById<TextView>(R.id.bluerate)
+        val redText: TextView = findViewById<TextView>(R.id.redrate)
+        val greenText: TextView = findViewById<TextView>(R.id.greenrate)
+        val yellowText: TextView = findViewById<TextView>(R.id.yellowrate)
 
-        yellowtext.text =getString(R.string.quidrate, userstore?.quidrate.toString().split(".")[0])
-        bluetext.text =getString(R.string.shilrate, userstore?.shilrate.toString().split(".")[0])
-        redtext.text =getString(R.string.penyrate, userstore?.penyrate.toString().split(".")[0])
-        greentext.text =getString(R.string.dolrrate, userstore?.dolrrate.toString().split(".")[0])
+        yellowText.text =getString(R.string.quidrate, userstore?.quidrate.toString().split(".")[0])
+        blueText.text =getString(R.string.shilrate, userstore?.shilrate.toString().split(".")[0])
+        redText.text =getString(R.string.penyrate, userstore?.penyrate.toString().split(".")[0])
+        greenText.text =getString(R.string.dolrrate, userstore?.dolrrate.toString().split(".")[0])
         // set the listeners for the buttons to open wallet for each type of coins
         // the type is passed through the intent
-        blue_button.setOnClickListener { view ->
+        blue_button.setOnClickListener { _ ->
             val intent = Intent(this, MywalletActivity::class.java)
             intent.putExtra("useridentity", userstore)
             intent.putExtra("color", "SHIL")
             startActivity(intent)
         }
-        red_button.setOnClickListener { view ->
+        red_button.setOnClickListener { _ ->
             val intent = Intent(this, MywalletActivity::class.java)
             intent.putExtra("useridentity", userstore)
             intent.putExtra("color", "PENY")
             startActivity(intent)
         }
-        yellow_button.setOnClickListener { view ->
+        yellow_button.setOnClickListener { _ ->
             val intent = Intent(this, MywalletActivity::class.java)
             intent.putExtra("useridentity", userstore)
             intent.putExtra("color", "QUID")
             startActivity(intent)
         }
-        green_button.setOnClickListener { view ->
+        green_button.setOnClickListener { _ ->
             val intent = Intent(this, MywalletActivity::class.java)
             intent.putExtra("useridentity", userstore)
             intent.putExtra("color", "DOLR")

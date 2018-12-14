@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.ilpcoursework.coinz.activities
 
 import android.Manifest.permission.READ_CONTACTS
@@ -104,9 +106,9 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         sign_up_button.visibility = View.GONE
 
                         mAuth?.createUserWithEmailAndPassword(emailStr, passwordStr)
-                                ?.addOnCompleteListener(this) {task->
+                                ?.addOnCompleteListener(this) {authentask->
                                     //add user to authentication
-                                    if (task.isSuccessful) {
+                                    if (authentask.isSuccessful) {
                                         // Sign in success, update UI with the signed-in user's information
                                         Log.d(tag, "createUserWithEmail:success")
                                         val userstore = User(usernameStr, emailStr)
@@ -124,7 +126,7 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                                     } else {
                                         // If sign in fails, display a message to the user.
-                                        Log.w(tag, "createUserWithEmail:failure", task.exception)
+                                        Log.w(tag, "createUserWithEmail:failure", authentask.exception)
                                         Toast.makeText(this, "Authentication failed.",
                                                 Toast.LENGTH_SHORT).show()
                                         updateUI(null)
@@ -188,8 +190,8 @@ class SignupActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(email, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok,
-                            { requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS) })
+                    .setAction(android.R.string.ok
+                    ) { requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS) }
         } else {
             requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS)
         }

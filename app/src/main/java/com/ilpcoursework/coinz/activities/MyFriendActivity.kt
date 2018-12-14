@@ -24,6 +24,7 @@ import kotlinx.android.synthetic.main.activity_myfriend.*
 import kotlinx.android.synthetic.main.app_bar_myfriend.*
 import kotlinx.android.synthetic.main.content_myfriend.*
 
+@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 /**
  * the activity to add and remove friend
  */

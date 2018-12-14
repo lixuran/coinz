@@ -4,7 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-     
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -20,18 +19,14 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".activities.MapboxActivity" />
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".activities.MywalletActivity"
             android:label="@string/title_activity_mywallet2"

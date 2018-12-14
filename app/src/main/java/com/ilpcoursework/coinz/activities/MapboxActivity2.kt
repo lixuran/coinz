@@ -52,6 +52,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import kotlin.math.pow
 
+@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener , OnMapReadyCallback, PermissionsListener, LocationEngineListener,MapboxMap.OnMapClickListener, DownloadCompleteListener {
     private lateinit var  fc: FeatureCollection
     private var featureList: List<Feature>? = null
@@ -343,7 +344,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 counter++
                 // for each coin calculate the distance from player's current position , mark those are within 25 meters as collected
                 val distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
-                if(distance<=100 && userstore!!.collectedcoins[counter]==0){
+                if(distance<=25 && userstore!!.collectedcoins[counter]==0){
                     userstore!!.collectedcoins.set(counter,1)
                     userstore!!.collectedtoday= userstore!!.collectedtoday +1
                     val id =  f.properties()?.get("id").toString()
@@ -399,8 +400,6 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
    override fun onMapClick(point: LatLng) {
 //        TODO("not implemented")
-//        click on coins show coin info (perferably as a panel(or sidepanel )) this is implemented but can be improved
-//        click on house show house info (as another activity)
 //        click on wallet show personal info?? is this included?
 //        or instead of automatically collect all coins user have to collect them manually.
     }
@@ -468,6 +467,7 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             buyButton?.text= "purchase"
             buyButton.setOnClickListener { _->
                 if(userstore!!.gold> houses[position].price ) {
+                    // on house purchase, set house to purchased, and discount user's gold
                     userstore!!.propertiesbought.set(position, 1)
                     userstore!!.gold-=houses[position].price
                     buyButton.visibility = View.GONE
@@ -483,9 +483,9 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
         // otherwise if reward has not be collected display collect option
         else{
             // user can collect the profit if only he is close enough to the property
-            if (originLocation!= null) {
-                val  distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(houses[position].latlng)
-                if (userstore!!.housescollected[position] == 0) {
+            // there is a warning here,,, but I dont
+            val  distance = LatLng(originLocation.latitude,originLocation.longitude) .distanceTo(houses[position].latlng)
+            if (userstore!!.housescollected[position] == 0) {
                     if( distance<100 ){
                     buyButton?.text = "collect profit"
                     buyButton.setOnClickListener { _ ->
@@ -499,14 +499,11 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
                     else{
                         buyButton?.text = "get closer to collect profit"
                     }
-                    }
-                else{
-                    buyButton?.text = "you have collected your share today"
-                }
             }
             else{
-                buyButton.visibility=View.GONE
+                buyButton?.text = "you have collected your share today"
             }
+           
         }
         //build and show the dialog
         val dialog = builder.create()
@@ -538,15 +535,16 @@ class MapboxActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val point: Point = g as Point
             // calculate distance between current location and coin position
             // if location is unknown then assume user can see the coin
-            var distance =0.0
+            var distance: Double
             if(location!= null ) distance = LatLng(location.latitude,location.longitude) .distanceTo(LatLng(point.latitude(),point.longitude()))
             else {
                 distance= 0.0
             }
+            //if distance between player and a coin is below 250, show the coin on the map
             if(distance <250){
                 val iconFactory = IconFactory.getInstance(this)
                 val icon = iconFactory.fromResource(coinsMapping.get(currency)!!)
-                // Add the custom icon marker to the map
+                // Add the custom icon marker to the map to represent the coin,
                 val currencyused =p?.get("currency").toString().substring(1,5)
                 map?.addMarker(MarkerOptions()
                         .position(LatLng(point.latitude(), point.longitude()))

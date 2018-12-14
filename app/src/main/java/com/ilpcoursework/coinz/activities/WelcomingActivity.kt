@@ -18,12 +18,12 @@ class WelcomingActivity : AppCompatActivity() {
     private var mAuth: FirebaseAuth? = null
     private var user: FirebaseUser?=null
     private var userstore: User?=null
-    private val TAG="welcoming activity"
+    private val tag="welcoming activity"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_welcoming)
         mAuth = FirebaseAuth.getInstance()
-        user = mAuth?.getCurrentUser()
+        user = mAuth?.currentUser
 
     }
     override fun onStart() {
@@ -47,7 +47,7 @@ class WelcomingActivity : AppCompatActivity() {
             }
             // retry continues to fail.
             else{
-                Log.w(TAG, "download user data:failure internet down")
+                Log.w(tag, "download user data:failure internet down")
                 Toast.makeText(this, "can't not access databse, plz check your internet connection",
                         Toast.LENGTH_LONG).show()
             }

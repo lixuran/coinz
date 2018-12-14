@@ -19,6 +19,7 @@ class HelperFunctions (context: Context){
     private var user: FirebaseUser?=null
     private var context:Context?=null
     private val internetdownPrompt = "can't not access databse, plz check your internet connection"
+    // get the cloud firestore instance and store the context.
     init {
         mAuth = FirebaseAuth.getInstance()
         this.context=context
@@ -30,7 +31,6 @@ class HelperFunctions (context: Context){
      *  @param userstore the local user object
      */
     fun updateUser(userstore : User, tag:String){
-
         db.collection("users")
                     .document(userstore.email).set(userstore)
                     .addOnSuccessListener {
@@ -39,8 +39,9 @@ class HelperFunctions (context: Context){
                     }.addOnFailureListener {
                         tryUpdateAgain(userstore,tag)
                     }
-
     }
+
+    // the same functionality with updateUser. called when updating current user failed
     fun tryUpdateAgain(userstore : User, tag:String){
 
         db.collection("users")
@@ -88,12 +89,12 @@ class HelperFunctions (context: Context){
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
-            //find user from friend's friend list
+            //find user from friend's friend list if  such user exist
             if(frienduser!!.friends.map { friend -> friend.email }.contains(userstore.email)) {
                 val index = frienduser!!.friends.map { friend -> friend.email }.indexOf(userstore.email)
                 // and remove if user if found in the friend list
                 frienduser!!.friends.removeAt(index)
-                // set changestate to indicate the operation down.
+                // set change state to indicate the operation down.
                 frienduser?.changestate = 1
             }
             db.collection("users")
@@ -102,10 +103,12 @@ class HelperFunctions (context: Context){
                         Log.d(tag, "DocumentSnapshot added with ID: " +friend)
 
                     }.addOnFailureListener {
+                        //if upload failed for the first time , try again
                         if(time>0)
                         {
                             friendRemoveUser( userstore,friend, tag,time-1)
                         }
+                        //otherwise show an error.
                         else{
                             Toast.makeText(context, internetdownPrompt,
                                     Toast.LENGTH_LONG).show()
@@ -124,7 +127,7 @@ class HelperFunctions (context: Context){
     }
     /**
      *  add player to his friend's friend list, after user accept the invitation
-     *   @param friend friend 's email. used to download his document
+     *   @param friend friend 's email. used to download his document and stored to frienduser
      */
     fun friendAddUser(userstore: User, friend:String, tag:String,time:Int){
         val docRef = db.collection("users").document(friend)
@@ -132,8 +135,9 @@ class HelperFunctions (context: Context){
         docRef.get().addOnSuccessListener {
             documentSnapshot ->
             frienduser= documentSnapshot.toObject(User::class.java)
-            //friend add user to friend list
+            //friend add user to his friend list
             if(frienduser!=null) {
+                //if user is not already a friend of the frienduser
                 if (!frienduser!!.friends.map { afriend -> afriend.email }.contains(userstore.email)) {
                     frienduser?.friends?.add(0, com.ilpcoursework.coinz.DAO.friend(userstore.username, userstore.email))
 
@@ -189,13 +193,14 @@ class HelperFunctions (context: Context){
             }
             // set changestate to indicate the operation down.
             frienduser?.changestate=3
-            // update friend's state
+            // update friend's state on the cloud with the current frienduser object
             db.collection("users")
                     .document(friendemail).set(frienduser!!)
                     .addOnSuccessListener {
                         Log.d(tag, "DocumentSnapshot added with ID: " +friendemail)
 
                     }.addOnFailureListener {
+                        //if updates fails for the first time , try again
                         if(time>0)
                         {
                             friendAddCoin( friendemail,coin, tag,time-1,activity)
